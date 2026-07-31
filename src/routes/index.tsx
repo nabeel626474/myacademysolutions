@@ -11,19 +11,19 @@ import {
   type CardData,
 } from "@/lib/result-pdf";
 import { buildResultWorkbook } from "@/lib/result-excel";
-import logoAsset from "@/assets/fbise-logo.png.asset.json";
+import logoUrl from "@/assets/academy-logo.png";
 
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FBISE Result Cards & Excel Sheet Maker" },
+      { title: "My Academy Solutions — Result Cards & Excel Sheets" },
       {
         name: "description",
         content:
           "Enter FBISE roll numbers to download official result cards as PDF and an auto-built Excel sheet with marks, total, percentage and grade.",
       },
-      { property: "og:title", content: "FBISE Result Cards & Excel Sheet Maker" },
+      { property: "og:title", content: "My Academy Solutions — Result Cards & Excel Sheets" },
       {
         property: "og:description",
         content:
@@ -149,7 +149,7 @@ function Index() {
         );
         const data = (await res.json()) as CardData | { ok: false; error: string };
         if (!("ok" in data) || data.ok !== true) {
-          const message = "error" in data ? data.error : "Result nahi mila";
+          const message = "error" in data ? data.error : "Result not found";
           setRows((prev) =>
             prev.map((r, idx) => (idx === i ? { ...r, status: "failed", message } : r)),
           );
@@ -210,23 +210,19 @@ function Index() {
       <header className="hero-band">
         <div className="mx-auto flex max-w-5xl items-center gap-5 px-5 py-9">
           <img
-            src={logoAsset.url}
-            alt="Federal Board of Intermediate and Secondary Education Islamabad logo"
+            src={logoUrl}
+            alt="My Academy Solutions logo"
             className="size-16 shrink-0 rounded-full bg-card p-1 shadow-md sm:size-20"
             width={80}
             height={80}
           />
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] opacity-80">
-              Federal Board of Intermediate &amp; Secondary Education
+              My Academy Solutions
             </p>
             <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-4xl">
-              Result Cards &amp; Excel Sheet Maker
+              Welcome to My Academy Solutions
             </h1>
-            <p className="mt-2 max-w-2xl text-sm opacity-90">
-              Roll number daalein — official result card PDF bhi milega aur marks, total,
-              percentage &amp; grade wali Excel sheet bhi automatically ban jayegi.
-            </p>
           </div>
         </div>
       </header>
@@ -237,7 +233,7 @@ function Index() {
             <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               1
             </span>
-            <h2 className="text-sm font-semibold">Class chunein aur roll numbers likhein</h2>
+            <h2 className="text-sm font-semibold">Select class and enter roll numbers</h2>
           </div>
           <div className="grid gap-5 sm:grid-cols-[minmax(0,260px)_1fr]">
             <div>
@@ -271,8 +267,8 @@ function Index() {
                 maxLength={6000}
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Comma, space ya nayi line se alag karein. Range bhi chalti hai (100100-100120).
-                Aik dafa max 300 roll numbers.
+                Separate with commas, spaces or new lines. Ranges work too (100100-100120).
+                Maximum 300 roll numbers at a time.
               </p>
             </div>
           </div>
@@ -281,7 +277,7 @@ function Index() {
 
           <div className="mt-5">
             <button className="btn-primary" onClick={handleRun} disabled={running}>
-              {running ? "Result la rahe hain…" : "Get Results"}
+              {running ? "Fetching results…" : "Get Results"}
             </button>
           </div>
         </section>
@@ -291,7 +287,7 @@ function Index() {
             <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               2
             </span>
-            <h2 className="text-sm font-semibold">Download karein</h2>
+            <h2 className="text-sm font-semibold">Download</h2>
             <span className="ml-auto text-xs text-muted-foreground">
               {done.length} result ready
             </span>
@@ -303,7 +299,7 @@ function Index() {
               disabled={excelBusy || running || done.length === 0}
             >
               {excelBusy
-                ? "Excel ban rahi hai…"
+                ? "Building Excel…"
                 : `Excel Sheet — Marks, %, Grade (${done.length})`}
             </button>
             <button
@@ -311,14 +307,14 @@ function Index() {
               onClick={downloadSinglePdf}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
-              {merging ? `PDF ban raha hai… ${merging}` : `All Result Cards — 1 PDF (${done.length})`}
+              {merging ? `Building PDF… ${merging}` : `All Result Cards — 1 PDF (${done.length})`}
             </button>
             <button
               className="btn-primary"
               onClick={downloadZip}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
-              {zipping ? "ZIP ban rahi hai…" : "Alag-alag PDFs (ZIP)"}
+              {zipping ? "Building ZIP…" : "Individual PDFs (ZIP)"}
             </button>
             <button
               className="btn-ghost"
@@ -327,12 +323,12 @@ function Index() {
                 previewing !== null || merging !== null || zipping || running || done.length === 0
               }
             >
-              {previewing === "all" ? `Preview ban raha hai… ${merging ?? ""}` : "Preview All"}
+              {previewing === "all" ? `Building preview… ${merging ?? ""}` : "Preview All"}
             </button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Excel sheet me class summary ke saath har subject ki alag sheet banti hai — marks
-            obtained, total marks, percentage aur grade ke sath.
+            The Excel file includes a class summary plus a separate sheet for every subject — with
+            marks obtained, total marks, percentage and grade.
           </p>
         </section>
 
