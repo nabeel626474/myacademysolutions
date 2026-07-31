@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import JSZip from "jszip";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import {
