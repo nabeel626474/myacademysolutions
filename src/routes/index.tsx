@@ -133,7 +133,7 @@ function Index() {
   async function handleRun() {
     const rolls = parseRollNumbers(input);
     if (rolls.length === 0) {
-      setNotice("Kam az kam aik valid roll number likhein (misal: 123456 ya 100100-100120).");
+      setNotice("Please enter at least one valid roll number (example: 123456 or 100100-100120).");
       return;
     }
     setNotice(null);
