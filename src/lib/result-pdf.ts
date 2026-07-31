@@ -21,12 +21,30 @@ export type CardData = {
  * line underneath it. Putting that table back into normal flow keeps the school
  * name below the marks block without changing any other styling.
  */
-const LAYOUT_FIX_CSS = `
-table[style*="position: absolute"],
-table[style*="position:absolute"] {
-  position: static !important;
+/**
+ * The portal positions the ID/Roll/Marks block absolutely, so a taller block
+ * (extra rows, fail remarks) can bleed over the INSTITUTION line below it.
+ * Instead of forcing it into flow (which breaks its alignment), we measure the
+ * real overlap and insert a spacer of exactly that height.
+ */
+function reserveSpaceForAbsoluteBlocks(doc: Document) {
+  const view = doc.defaultView;
+  if (!view) return;
+  const tables = Array.from(doc.querySelectorAll<HTMLTableElement>("table"));
+  for (const table of tables) {
+    if (view.getComputedStyle(table).position !== "absolute") continue;
+    const next = table.nextElementSibling as HTMLElement | null;
+    if (!next) continue;
+    const tableBottom = table.getBoundingClientRect().bottom;
+    const nextTop = next.getBoundingClientRect().top;
+    const overlap = tableBottom - nextTop;
+    if (overlap <= 0) continue;
+    const spacer = doc.createElement("div");
+    spacer.style.cssText = `height:${Math.ceil(overlap) + 4}px;width:1px;`;
+    table.parentNode?.insertBefore(spacer, table.nextSibling);
+  }
 }
-`;
+
 
 
 function qrDataUrl(value: string, size: number): string | null {
