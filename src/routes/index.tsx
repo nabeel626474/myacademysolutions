@@ -225,7 +225,7 @@ function Index() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <header className="hero-band">
         <div className="mx-auto flex max-w-5xl items-center gap-5 px-5 py-9">
           <img
@@ -240,11 +240,15 @@ function Index() {
               My Academy Solutions
             </p>
             <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-4xl">
-              Welcome to My Academy Solutions
+              Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
             </h1>
+          </div>
+          <div className="ml-auto self-start">
+            <ThemeToggle />
           </div>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-5xl px-5 py-8">
         <section className="panel p-6">
