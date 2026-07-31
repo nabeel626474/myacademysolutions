@@ -88,7 +88,7 @@ async function renderCardCanvas(card: CardData): Promise<HTMLCanvasElement> {
     const doc = frame.contentDocument!;
     doc.open();
     doc.write(
-      `<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"></head><body lang="EN-US" style="tab-interval:.5in;word-wrap:break-word;background:#fff">${card.html}</body></html>`,
+      `<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"><style>${LAYOUT_FIX_CSS}</style></head><body lang="EN-US" style="tab-interval:.5in;word-wrap:break-word;background:#fff">${card.html}</body></html>`,
     );
     doc.close();
 
