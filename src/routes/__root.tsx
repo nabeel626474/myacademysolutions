@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "FBISE Result Cards & Excel Sheet Maker" },
+      { name: "description", content: "Enter FBISE roll numbers to download official result cards as PDF and an auto-built Excel sheet with marks, total, percentage and grade." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "FBISE Result Cards & Excel Sheet Maker" },
+      { property: "og:description", content: "Enter FBISE roll numbers to download official result cards as PDF and an auto-built Excel sheet with marks, total, percentage and grade." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "FBISE Result Cards & Excel Sheet Maker" },
+      { name: "twitter:description", content: "Enter FBISE roll numbers to download official result cards as PDF and an auto-built Excel sheet with marks, total, percentage and grade." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5cc593a9-d4df-41d1-a7ec-4bf0e021dc93/id-preview-7179f3bb--6de73775-4d86-46b5-b902-8f573c4c536f.lovable.app-1785479996531.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5cc593a9-d4df-41d1-a7ec-4bf0e021dc93/id-preview-7179f3bb--6de73775-4d86-46b5-b902-8f573c4c536f.lovable.app-1785479996531.png" },
     ],
     links: [
       {

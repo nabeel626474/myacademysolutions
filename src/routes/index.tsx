@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Bulk download FBISE SSC and HSSC result cards as PDF files exactly as issued on the official portal.",
+          "Enter FBISE roll numbers to download official result cards as PDF and an auto-built Excel sheet with marks, total, percentage and grade.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
