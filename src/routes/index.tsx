@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import JSZip from "jszip";
+import { Download, Eye } from "lucide-react";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import {
   cardToPdfBlob,
@@ -35,8 +36,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Index,
 });
-
-import { Download, Eye } from "lucide-react";
 
 type RowStatus = "pending" | "working" | "done" | "failed";
 type Row = { rollNo: string; status: RowStatus; message?: string; card?: CardData };
