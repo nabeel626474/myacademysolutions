@@ -36,19 +36,39 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+import { Download, Eye } from "lucide-react";
+
 type RowStatus = "pending" | "working" | "done" | "failed";
 type Row = { rollNo: string; status: RowStatus; message?: string; card?: CardData };
 
+function statusTone(status: RowStatus): string {
+  switch (status) {
+    case "done":
+      return "bg-primary";
+    case "failed":
+      return "bg-destructive";
+    case "working":
+      return "bg-accent animate-pulse";
+    default:
+      return "bg-muted-foreground/40";
+  }
+}
+
 function StatusDot({ status }: { status: RowStatus }) {
-  const tone =
-    status === "done"
-      ? "bg-primary"
-      : status === "failed"
-        ? "bg-destructive"
-        : status === "working"
-          ? "bg-accent animate-pulse"
-          : "bg-muted-foreground/40";
-  return <span className={`inline-block size-2.5 rounded-full ${tone}`} />;
+  return <span className={`inline-block size-2.5 rounded-full ${statusTone(status)}`} />;
+}
+
+function statusLabel(status: RowStatus): string {
+  switch (status) {
+    case "done":
+      return "Ready";
+    case "failed":
+      return "Not Found";
+    case "working":
+      return "Fetching";
+    default:
+      return "Queued";
+  }
 }
 
 type Preview = { pages: string[]; blob: Blob; name: string; label: string };
