@@ -10,19 +10,20 @@ import {
   parseRollNumbers,
   type CardData,
 } from "@/lib/result-pdf";
-import { filteredResultWorkbook } from "@/lib/result-excel";
+import { buildResultWorkbook } from "@/lib/result-excel";
+import logoAsset from "@/assets/fbise-logo.png.asset.json";
 
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FBISE Bulk Result Card PDF Downloader" },
+      { title: "FBISE Result Cards & Excel Sheet Maker" },
       {
         name: "description",
         content:
-          "Enter FBISE roll numbers and class to download official result cards as PDF in bulk, complete with QR barcode, disclaimer and Controller of Examinations signature.",
+          "Enter FBISE roll numbers to download official result cards as PDF and an auto-built Excel sheet with marks, total, percentage and grade.",
       },
-      { property: "og:title", content: "FBISE Bulk Result Card PDF Downloader" },
+      { property: "og:title", content: "FBISE Result Cards & Excel Sheet Maker" },
       {
         property: "og:description",
         content:
@@ -65,13 +66,16 @@ function Index() {
   const [excelBusy, setExcelBusy] = useState(false);
 
   async function downloadExcelSheet() {
-    const rolls = rows.map((r) => r.rollNo);
-    if (rolls.length === 0) return;
+    const sources = done
+      .filter((r) => r.card)
+      .map((r) => ({ rollNo: r.rollNo, html: r.card!.html }));
+    if (sources.length === 0) return;
     setExcelBusy(true);
     setNotice(null);
     try {
-      const blob = await filteredResultWorkbook(rolls);
-      downloadBlob(blob, `IX_Class_board_result-${rolls.length}.xlsx`);
+      const label = CLASS_OPTIONS.find((o) => o.value === cls)?.label ?? cls;
+      const blob = await buildResultWorkbook(sources, label);
+      downloadBlob(blob, `FBISE-${cls}-Result-Sheet-${sources.length}.xlsx`);
     } catch (e) {
       setNotice((e as Error).message);
     } finally {
@@ -204,24 +208,37 @@ function Index() {
   return (
     <div className="min-h-screen bg-background">
       <header className="hero-band">
-        <div className="mx-auto max-w-5xl px-5 py-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] opacity-80">
-            Federal Board of Intermediate &amp; Secondary Education
-          </p>
-          <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
-            Bulk Result Card PDF Downloader
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm opacity-90">
-            Select a class and enter roll numbers — each student&apos;s official FBISE result card is
-            downloaded as an exact PDF, complete with QR barcode, disclaimer and the Controller of
-            Examinations signature.
-          </p>
-
+        <div className="mx-auto flex max-w-5xl items-center gap-5 px-5 py-9">
+          <img
+            src={logoAsset.url}
+            alt="Federal Board of Intermediate and Secondary Education Islamabad logo"
+            className="size-16 shrink-0 rounded-full bg-card p-1 shadow-md sm:size-20"
+            width={80}
+            height={80}
+          />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] opacity-80">
+              Federal Board of Intermediate &amp; Secondary Education
+            </p>
+            <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-4xl">
+              Result Cards &amp; Excel Sheet Maker
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm opacity-90">
+              Roll number daalein — official result card PDF bhi milega aur marks, total,
+              percentage &amp; grade wali Excel sheet bhi automatically ban jayegi.
+            </p>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-5 py-8">
         <section className="panel p-6">
+          <div className="mb-5 flex items-center gap-2">
+            <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              1
+            </span>
+            <h2 className="text-sm font-semibold">Class chunein aur roll numbers likhein</h2>
+          </div>
           <div className="grid gap-5 sm:grid-cols-[minmax(0,260px)_1fr]">
             <div>
               <label htmlFor="cls" className="mb-1.5 block text-sm font-semibold">
@@ -262,41 +279,63 @@ function Index() {
 
           {notice && <p className="mt-4 text-sm font-medium text-destructive">{notice}</p>}
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-5">
             <button className="btn-primary" onClick={handleRun} disabled={running}>
-              {running ? "Fetching results…" : "Fetch Result Cards"}
+              {running ? "Result la rahe hain…" : "Get Results"}
+            </button>
+          </div>
+        </section>
+
+        <section className="panel mt-6 p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              2
+            </span>
+            <h2 className="text-sm font-semibold">Download karein</h2>
+            <span className="ml-auto text-xs text-muted-foreground">
+              {done.length} result ready
+            </span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              className="btn-primary"
+              onClick={downloadExcelSheet}
+              disabled={excelBusy || running || done.length === 0}
+            >
+              {excelBusy
+                ? "Excel ban rahi hai…"
+                : `Excel Sheet — Marks, %, Grade (${done.length})`}
             </button>
             <button
               className="btn-primary"
               onClick={downloadSinglePdf}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
-              {merging ? `Building PDF… ${merging}` : `Download All (1 PDF) (${done.length})`}
+              {merging ? `PDF ban raha hai… ${merging}` : `All Result Cards — 1 PDF (${done.length})`}
             </button>
             <button
               className="btn-primary"
               onClick={downloadZip}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
-              {zipping ? "Building ZIP…" : `Download All as ZIP (${done.length})`}
+              {zipping ? "ZIP ban rahi hai…" : "Alag-alag PDFs (ZIP)"}
             </button>
             <button
               className="btn-ghost"
               onClick={previewAll}
-              disabled={previewing !== null || merging !== null || zipping || running || done.length === 0}
+              disabled={
+                previewing !== null || merging !== null || zipping || running || done.length === 0
+              }
             >
-              {previewing === "all" ? `Preview ban raha hai… ${merging ?? ""}` : "Preview All (1 PDF)"}
-            </button>
-            <button
-              className="btn-primary"
-              onClick={downloadExcelSheet}
-              disabled={excelBusy || running || rows.length === 0}
-            >
-              {excelBusy ? "Building Excel…" : `Download Excel Sheet (${rows.length})`}
+              {previewing === "all" ? `Preview ban raha hai… ${merging ?? ""}` : "Preview All"}
             </button>
           </div>
-
+          <p className="mt-3 text-xs text-muted-foreground">
+            Excel sheet me class summary ke saath har subject ki alag sheet banti hai — marks
+            obtained, total marks, percentage aur grade ke sath.
+          </p>
         </section>
+
 
         {rows.length > 0 && (
           <section className="panel mt-6 overflow-hidden">
