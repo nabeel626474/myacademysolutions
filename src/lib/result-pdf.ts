@@ -23,9 +23,10 @@ export type CardData = {
  */
 /**
  * The portal positions the ID/Roll/Marks block absolutely, so a taller block
- * (extra rows, fail remarks) can bleed over the INSTITUTION line below it.
- * Instead of forcing it into flow (which breaks its alignment), we measure the
- * real overlap and insert a spacer of exactly that height.
+ * (extra rows, fail remarks) bleeds over the INSTITUTION line below it.
+ * We put that block back into normal flow at exactly the same visual spot:
+ * relative + inline-block keeps its original x/y and stops the surrounding
+ * underline from leaking onto the ID NO / Roll No labels.
  */
 function reserveSpaceForAbsoluteBlocks(doc: Document) {
   const view = doc.defaultView;
@@ -33,17 +34,20 @@ function reserveSpaceForAbsoluteBlocks(doc: Document) {
   const tables = Array.from(doc.querySelectorAll<HTMLTableElement>("table"));
   for (const table of tables) {
     if (view.getComputedStyle(table).position !== "absolute") continue;
-    const next = table.nextElementSibling as HTMLElement | null;
-    if (!next) continue;
-    const tableBottom = table.getBoundingClientRect().bottom;
-    const nextTop = next.getBoundingClientRect().top;
-    const overlap = tableBottom - nextTop;
-    if (overlap <= 0) continue;
-    const spacer = doc.createElement("div");
-    spacer.style.cssText = `height:${Math.ceil(overlap) + 4}px;width:1px;`;
-    table.parentNode?.insertBefore(spacer, table.nextSibling);
+    const before = table.getBoundingClientRect();
+    table.style.position = "relative";
+    table.style.display = "inline-block";
+    table.style.verticalAlign = "top";
+    table.style.top = "0px";
+    table.style.left = "0px";
+    table.style.marginTop = "0px";
+    const afterY = table.getBoundingClientRect();
+    table.style.marginTop = `${before.top - afterY.top}px`;
+    const afterX = table.getBoundingClientRect();
+    table.style.left = `${before.left - afterX.left}px`;
   }
 }
+
 
 
 
