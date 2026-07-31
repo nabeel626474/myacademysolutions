@@ -75,7 +75,13 @@ type Preview = { pages: string[]; blob: Blob; name: string; label: string };
 function Index() {
   const [cls, setCls] = useState<string>(CLASS_OPTIONS[0].value);
   const [input, setInput] = useState("");
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<Row[]>([
+    { rollNo: "123456", status: "done", card: { studentName: "Ahmad Ali", fatherName: "Muhammad Ali", html: "", title: "SSC-I Result Card" } as CardData },
+    { rollNo: "100100", status: "done", card: { studentName: "Fatima Khan", fatherName: "Imran Khan", html: "", title: "SSC-I Result Card" } as CardData },
+    { rollNo: "100101", status: "failed", message: "Result not found" },
+    { rollNo: "100102", status: "working" },
+    { rollNo: "100103", status: "pending" },
+  ]);
   const [running, setRunning] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [merging, setMerging] = useState<string | null>(null);
