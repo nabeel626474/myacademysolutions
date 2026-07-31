@@ -15,6 +15,19 @@ export type CardData = {
   fatherName?: string;
 };
 
+/**
+ * The portal renders the student-details table with `position:absolute`, so any
+ * card with an extra row (fail / remarks / re-appear) overlaps the INSTITUTION
+ * line underneath it. Putting that table back into normal flow keeps the school
+ * name below the marks block without changing any other styling.
+ */
+const LAYOUT_FIX_CSS = `
+table[style*="position: absolute"],
+table[style*="position:absolute"] {
+  position: static !important;
+}
+`;
+
 
 function qrDataUrl(value: string, size: number): string | null {
   try {
