@@ -75,7 +75,7 @@ export async function buildResultWorkbook(
   classLabel: string,
 ): Promise<Blob> {
   const students: ParsedResult[] = sources.map((s) => parseResultHtml(s.rollNo, s.html));
-  if (students.length === 0) throw new Error("Pehle roll numbers ka result fetch karein.");
+  if (students.length === 0) throw new Error("Please fetch results for some roll numbers first.");
 
   // Subject order = first appearance across students; max = highest mark seen.
   const order: string[] = [];
