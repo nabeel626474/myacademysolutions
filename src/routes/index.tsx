@@ -361,53 +361,101 @@ function Index() {
                 {done.length} / {rows.length} ready
               </span>
             </div>
-            <ul className="divide-y divide-border">
+            <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
               {rows.map((row) => (
-                <li key={row.rollNo} className="flex items-start gap-3 px-5 py-3">
-                  <span className="mt-1.5">
-                    <StatusDot status={row.status} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span className="font-mono text-sm font-semibold">{row.rollNo}</span>
-                      {row.card?.studentName && (
-                        <span className="text-sm font-semibold">{row.card.studentName}</span>
+                <div
+                  key={row.rollNo}
+                  className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
+                >
+                  <div className={`h-1.5 w-full ${statusTone(row.status)}`} />
+                  <div className="flex flex-1 flex-col gap-3 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-2.5 w-2.5 rounded-full ring-4 ring-primary/10">
+                          <span className={`block h-full w-full rounded-full ${statusTone(row.status)}`} />
+                        </span>
+                        <code className="font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                          Roll: {row.rollNo}
+                        </code>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                          row.status === "done"
+                            ? "border-primary/20 bg-primary/10 text-primary"
+                            : row.status === "failed"
+                              ? "border-destructive/20 bg-destructive/10 text-destructive"
+                              : row.status === "working"
+                                ? "border-accent/30 bg-accent/15 text-accent-foreground"
+                                : "border-muted bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {statusLabel(row.status)}
+                      </span>
+                    </div>
+
+                    {row.status === "done" && row.card?.studentName ? (
+                      <div className="space-y-0.5">
+                        <h3 className="text-base font-bold leading-tight text-card-foreground">
+                          {row.card.studentName}
+                        </h3>
+                        {row.card.fatherName && (
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Father:</span> {row.card.fatherName}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-0.5">
+                        <h3 className="text-base font-bold leading-tight text-card-foreground">
+                          {row.rollNo}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {row.status === "failed"
+                            ? row.message ?? "Could not fetch result"
+                            : row.status === "working"
+                              ? "Fetching result card…"
+                              : "Waiting in queue"}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mt-auto h-px w-full bg-border" />
+
+                    <div className="flex items-center justify-end gap-2">
+                      {row.status === "done" ? (
+                        <>
+                          <button
+                            className="btn-ghost"
+                            onClick={() => previewOne(row)}
+                            disabled={previewing !== null}
+                            aria-label="Preview result card"
+                            title="Preview"
+                          >
+                            <Eye className="size-4" />
+                            <span className="hidden sm:inline">
+                              {previewing === row.rollNo ? "Preview…" : "Preview"}
+                            </span>
+                          </button>
+                          <button
+                            className="btn-ghost"
+                            onClick={() => downloadOne(row)}
+                            aria-label="Download PDF"
+                            title="Download"
+                          >
+                            <Download className="size-4" />
+                            <span className="hidden sm:inline">PDF</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          {row.status === "failed" ? "—" : "Actions will appear here"}
+                        </span>
                       )}
                     </div>
-                    {row.card?.fatherName && (
-                      <p className="text-xs text-muted-foreground">
-                        Father Name: {row.card.fatherName}
-                      </p>
-                    )}
-                    <p className="truncate text-xs text-muted-foreground">
-                      {row.status === "failed"
-                        ? row.message
-                        : row.status === "done"
-                          ? (row.card?.title ?? "Result card ready")
-                          : row.status === "working"
-                            ? "Fetching…"
-                            : "Queued"}
-                    </p>
                   </div>
-                  {row.status === "done" && (
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        className="btn-ghost"
-                        onClick={() => previewOne(row)}
-                        disabled={previewing !== null}
-                      >
-                        {previewing === row.rollNo ? "Preview…" : "Preview"}
-                      </button>
-                      <button className="btn-ghost" onClick={() => downloadOne(row)}>
-                        Download PDF
-                      </button>
-                    </div>
-                  )}
-
-                </li>
+                </div>
               ))}
-
-            </ul>
+            </div>
           </section>
         )}
 
