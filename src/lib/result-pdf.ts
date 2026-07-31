@@ -21,12 +21,34 @@ export type CardData = {
  * line underneath it. Putting that table back into normal flow keeps the school
  * name below the marks block without changing any other styling.
  */
-const LAYOUT_FIX_CSS = `
-table[style*="position: absolute"],
-table[style*="position:absolute"] {
-  position: static !important;
+/**
+ * The portal positions the ID/Roll/Marks block absolutely, so a taller block
+ * (extra rows, fail remarks) bleeds over the INSTITUTION line below it.
+ * We put that block back into normal flow at exactly the same visual spot:
+ * relative + inline-block keeps its original x/y and stops the surrounding
+ * underline from leaking onto the ID NO / Roll No labels.
+ */
+function reserveSpaceForAbsoluteBlocks(doc: Document) {
+  const view = doc.defaultView;
+  if (!view) return;
+  const tables = Array.from(doc.querySelectorAll<HTMLTableElement>("table"));
+  for (const table of tables) {
+    if (view.getComputedStyle(table).position !== "absolute") continue;
+    const before = table.getBoundingClientRect();
+    table.style.position = "relative";
+    table.style.display = "inline-block";
+    table.style.verticalAlign = "top";
+    table.style.top = "0px";
+    table.style.left = "0px";
+    table.style.marginTop = "0px";
+    const afterY = table.getBoundingClientRect();
+    table.style.marginTop = `${before.top - afterY.top}px`;
+    const afterX = table.getBoundingClientRect();
+    table.style.left = `${before.left - afterX.left}px`;
+  }
 }
-`;
+
+
 
 
 function qrDataUrl(value: string, size: number): string | null {
@@ -101,7 +123,7 @@ async function renderCardCanvas(card: CardData): Promise<HTMLCanvasElement> {
     const doc = frame.contentDocument!;
     doc.open();
     doc.write(
-      `<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"><style>${LAYOUT_FIX_CSS}</style></head><body lang="EN-US" style="tab-interval:.5in;word-wrap:break-word;background:#fff">${card.html}</body></html>`,
+      `<!doctype html><html><head><meta charset="utf-8"><base href="${location.origin}/"></head><body lang="EN-US" style="tab-interval:.5in;word-wrap:break-word;background:#fff">${card.html}</body></html>`,
     );
     doc.close();
 
@@ -112,6 +134,7 @@ async function renderCardCanvas(card: CardData): Promise<HTMLCanvasElement> {
     });
 
     const body = doc.body;
+    reserveSpaceForAbsoluteBlocks(doc);
     drawQrCodes(body, card.qrValues);
     await waitForImages(doc);
     await new Promise((r) => setTimeout(r, 200));
