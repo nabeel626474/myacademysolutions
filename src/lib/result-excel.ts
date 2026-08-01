@@ -10,6 +10,86 @@ function gradeFormula(cell: string): string {
   return `IF(${cell}="","",IF(${cell}>=96,"A++",IF(${cell}>=91,"A+",IF(${cell}>=86,"A",IF(${cell}>=81,"B++",IF(${cell}>=76,"B+",IF(${cell}>=71,"B",IF(${cell}>=61,"C+",IF(${cell}>=51,"C",IF(${cell}>=40,"D","U"))))))))))`;
 }
 
+const GRADES = ["A++", "A+", "A", "B++", "B+", "B", "C+", "C", "D", "U"] as const;
+const GPA_OF: Record<string, number> = {
+  "A++": 6.0,
+  "A+": 5.7,
+  A: 5.4,
+  "B++": 5.0,
+  "B+": 4.5,
+  B: 4.0,
+  "C+": 3.0,
+  C: 2.0,
+  D: 1.0,
+  U: 0.0,
+};
+
+function gpaFormula(gradeCell: string): string {
+  const chain = GRADES.map((g) => `IF(${gradeCell}="${g}",${GPA_OF[g].toFixed(1)},`).join("");
+  return `IF(${gradeCell}="","",${chain}""${")".repeat(GRADES.length)})`;
+}
+
+/** Grade distribution (A++ .. U) + TGPA block below a marks table. */
+function addGradeStats(
+  sheet: ExcelJS.Worksheet,
+  gradeColLetter: string,
+  gpaColLetter: string,
+  firstRow: number,
+  lastRow: number,
+  startRow: number,
+) {
+  const gRange = `${gradeColLetter}${firstRow}:${gradeColLetter}${lastRow}`;
+  const gpaRange = `${gpaColLetter}${firstRow}:${gpaColLetter}${lastRow}`;
+
+  const head = sheet.getRow(startRow);
+  head.getCell(1).value = "Grade Summary";
+  head.getCell(1).font = { bold: true, size: 12, color: { argb: "FF1F4E79" } };
+
+  const hdr = sheet.getRow(startRow + 1);
+  ["Grade", "GPA", "No. of Students"].forEach((h, i) => {
+    const cell = hdr.getCell(1 + i);
+    cell.value = h;
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_FILL } };
+    cell.alignment = { horizontal: "center" };
+  });
+
+  GRADES.forEach((g, i) => {
+    const r = sheet.getRow(startRow + 2 + i);
+    r.getCell(1).value = g;
+    r.getCell(2).value = GPA_OF[g];
+    r.getCell(2).numFmt = "0.0";
+    r.getCell(3).value = { formula: `COUNTIF(${gRange},"${g}")` } as ExcelJS.CellValue;
+    [1, 2, 3].forEach((c) => {
+      r.getCell(c).alignment = { horizontal: "center" };
+      r.getCell(c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: SUB_FILL } };
+    });
+  });
+
+  const totalRow = sheet.getRow(startRow + 2 + GRADES.length);
+  totalRow.getCell(1).value = "Total";
+  totalRow.getCell(3).value = {
+    formula: `SUM(C${startRow + 2}:C${startRow + 1 + GRADES.length})`,
+  } as ExcelJS.CellValue;
+
+  const tgpaRow = sheet.getRow(startRow + 3 + GRADES.length);
+  tgpaRow.getCell(1).value = "TGPA (Average GPA)";
+  tgpaRow.getCell(3).value = {
+    formula: `IF(COUNT(${gpaRange})=0,"",ROUND(AVERAGE(${gpaRange}),2))`,
+  } as ExcelJS.CellValue;
+  tgpaRow.getCell(3).numFmt = "0.00";
+
+  [totalRow, tgpaRow].forEach((r) => {
+    [1, 2, 3].forEach((c) => {
+      r.getCell(c).font = { bold: true };
+      r.getCell(c).alignment = { horizontal: "center" };
+    });
+    r.getCell(1).alignment = { horizontal: "left" };
+  });
+
+  borderBody(sheet, startRow + 1, startRow + 3 + GRADES.length);
+}
+
 function styleTitle(sheet: ExcelJS.Worksheet, cols: number, title: string, subtitle: string) {
   sheet.mergeCells(1, 1, 1, cols);
   sheet.mergeCells(2, 1, 2, cols);
@@ -111,7 +191,7 @@ export async function buildResultWorkbook(
   const sheet = wb.addWorksheet(safeSheetName("Class Result", used), {
     views: [{ state: "frozen", ySplit: 3 }],
   });
-  const headers = ["Ser #", "Roll No", "Name", "Father Name", ...order, "Obt", "Total", "Per%", "Grade"];
+  const headers = ["Ser #", "Roll No", "Name", "Father Name", ...order, "Obt", "Total", "Per%", "Grade", "GPA"];
   styleTitle(sheet, headers.length, institution, subtitle);
   styleHeader(sheet, 3, headers);
 
@@ -131,6 +211,7 @@ export async function buildResultWorkbook(
     const totalCol = obtCol + 1;
     const perCol = totalCol + 1;
     const gradeCol = perCol + 1;
+    const gpaCol = gradeCol + 1;
     const L = (c: number) => sheet.getColumn(c).letter;
     const r = 4 + i;
     row.getCell(obtCol).value = {
@@ -147,6 +228,10 @@ export async function buildResultWorkbook(
     row.getCell(gradeCol).value = {
       formula: gradeFormula(`${L(perCol)}${r}`),
     } as ExcelJS.CellValue;
+    row.getCell(gpaCol).value = {
+      formula: gpaFormula(`${L(gradeCol)}${r}`),
+    } as ExcelJS.CellValue;
+    row.getCell(gpaCol).numFmt = "0.0";
     row.getCell(3).alignment = { horizontal: "left" };
     row.getCell(4).alignment = { horizontal: "left" };
   });
@@ -170,6 +255,14 @@ export async function buildResultWorkbook(
   for (let c = 5 + order.length; c <= headers.length; c++) sheet.getColumn(c).width = 10;
   borderBody(sheet, 4, 3 + students.length);
   sheet.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: headers.length } };
+  addGradeStats(
+    sheet,
+    sheet.getColumn(headers.length - 1).letter,
+    sheet.getColumn(headers.length).letter,
+    4,
+    3 + students.length,
+    4 + students.length + 3,
+  );
 
   // ---- One sheet per subject ----
   for (const key of order) {
@@ -182,7 +275,7 @@ export async function buildResultWorkbook(
     const sub = wb.addWorksheet(safeSheetName(key, used), {
       views: [{ state: "frozen", ySplit: 3 }],
     });
-    const heads = ["Ser No", "Roll No", "Candidate Name", "Marks Obtained", "Total", "Per%", "Grade"];
+    const heads = ["Ser No", "Roll No", "Candidate Name", "Marks Obtained", "Total", "Per%", "Grade", "GPA"];
     styleTitle(sub, heads.length, institution, `${classLabel} (${fullName.get(key) ?? key})`);
     styleHeader(sub, 3, heads);
 
@@ -193,6 +286,8 @@ export async function buildResultWorkbook(
       row.getCell(6).value = { formula: `IF(E${r}=0,"",D${r}/E${r}*100)` } as ExcelJS.CellValue;
       row.getCell(6).numFmt = "0.00";
       row.getCell(7).value = { formula: gradeFormula(`F${r}`) } as ExcelJS.CellValue;
+      row.getCell(8).value = { formula: gpaFormula(`G${r}`) } as ExcelJS.CellValue;
+      row.getCell(8).numFmt = "0.0";
       row.getCell(3).alignment = { horizontal: "left" };
     });
 
@@ -203,7 +298,9 @@ export async function buildResultWorkbook(
     sub.getColumn(5).width = 10;
     sub.getColumn(6).width = 10;
     sub.getColumn(7).width = 10;
+    sub.getColumn(8).width = 10;
     borderBody(sub, 4, 3 + rows.length);
+    addGradeStats(sub, "G", "H", 4, 3 + rows.length, 4 + rows.length + 2);
   }
 
   const buffer = await wb.xlsx.writeBuffer();
