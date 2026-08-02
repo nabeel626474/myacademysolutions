@@ -151,6 +151,13 @@
   --shadow-glow: 0 10px 30px -12px oklch(0.6 0.13 150 / 0.35);
 }
 
+#lovable-badge,
+#lovable-badge * {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
