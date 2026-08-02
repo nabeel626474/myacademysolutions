@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import JSZip from "jszip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
-import {
-  cardToPdfBlob,
-  cardsToSinglePdfBlob,
-  cardsToPdfPreview,
-  downloadBlob,
-  parseRollNumbers,
-  type CardData,
-} from "@/lib/result-pdf";
-import { buildResultWorkbook } from "@/lib/result-excel";
+import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
+
+/**
+ * jsPDF / html2canvas / ExcelJS / JSZip are only needed once the user asks for a
+ * download or preview, so they are loaded on demand instead of shipping with the
+ * initial page bundle.
+ */
+const loadPdf = () => import("@/lib/result-pdf");
+const loadExcel = () => import("@/lib/result-excel");
+const loadZip = () => import("jszip");
+
 
 
 export const Route = createFileRoute("/")({
