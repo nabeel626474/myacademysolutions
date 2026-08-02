@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import JSZip from "jszip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
-import {
-  cardToPdfBlob,
-  cardsToSinglePdfBlob,
-  cardsToPdfPreview,
-  downloadBlob,
-  parseRollNumbers,
-  type CardData,
-} from "@/lib/result-pdf";
-import { buildResultWorkbook } from "@/lib/result-excel";
+import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
+
+/**
+ * jsPDF / html2canvas / ExcelJS / JSZip are only needed once the user asks for a
+ * download or preview, so they are loaded on demand instead of shipping with the
+ * initial page bundle.
+ */
+const loadPdf = () => import("@/lib/result-pdf");
+const loadExcel = () => import("@/lib/result-excel");
+const loadZip = () => import("jszip");
+
 
 
 export const Route = createFileRoute("/")({
@@ -94,6 +95,7 @@ function Index() {
     setNotice(null);
     try {
       const label = CLASS_OPTIONS.find((o) => o.value === cls)?.label ?? cls;
+      const { buildResultWorkbook } = await loadExcel();
       const blob = await buildResultWorkbook(sources, label);
       downloadBlob(blob, `FBISE-${cls}-Result-Sheet-${sources.length}.xlsx`);
     } catch (e) {
@@ -112,6 +114,7 @@ function Index() {
     if (!row.card) return;
     setPreviewing(row.rollNo);
     try {
+      const { cardsToPdfPreview } = await loadPdf();
       const { blob, pages } = await cardsToPdfPreview([row.card]);
       setPreview({
         pages,
@@ -130,6 +133,7 @@ function Index() {
     setPreviewing("all");
     setMerging(`0 / ${cards.length}`);
     try {
+      const { cardsToPdfPreview } = await loadPdf();
       const { blob, pages } = await cardsToPdfPreview(cards, (n, total) =>
         setMerging(`${n} / ${total}`),
       );
@@ -191,6 +195,7 @@ function Index() {
 
   async function downloadOne(row: Row) {
     if (!row.card) return;
+    const { cardToPdfBlob } = await loadPdf();
     const blob = await cardToPdfBlob(row.card);
     downloadBlob(blob, `FBISE-${cls}-${row.rollNo}.pdf`);
   }
@@ -199,10 +204,12 @@ function Index() {
     if (done.length === 0) return;
     setZipping(true);
     try {
+      const [{ cardToPdfBlob }, { default: JSZip }] = await Promise.all([loadPdf(), loadZip()]);
       const zip = new JSZip();
       for (const row of done) {
         if (!row.card) continue;
-        const blob = await cardToPdfBlob(row.card);
+        const { cardToPdfBlob } = await loadPdf();
+    const blob = await cardToPdfBlob(row.card);
         zip.file(`FBISE-${cls}-${row.rollNo}.pdf`, blob);
       }
       const out = await zip.generateAsync({ type: "blob" });
@@ -217,6 +224,7 @@ function Index() {
     if (cards.length === 0) return;
     setMerging(`0 / ${cards.length}`);
     try {
+      const { cardsToSinglePdfBlob } = await loadPdf();
       const blob = await cardsToSinglePdfBlob(cards, (n, total) => setMerging(`${n} / ${total}`));
       downloadBlob(blob, `FBISE-${cls}-Result-Cards.pdf`);
     } finally {
