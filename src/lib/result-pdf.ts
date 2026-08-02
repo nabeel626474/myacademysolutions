@@ -1,19 +1,14 @@
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 import QRious from "qrious";
+import type { CardData } from "./result-utils";
 
 const A4_W = 794; // px @96dpi
 const A4_H = 1123;
 
-export type CardData = {
-  ok: true;
-  rollNo: string;
-  title: string;
-  html: string;
-  qrValues: string[];
-  studentName?: string;
-  fatherName?: string;
-};
+export type { CardData };
+export { downloadBlob, parseRollNumbers } from "./result-utils";
+
 
 /**
  * The portal renders the student-details table with `position:absolute`, so any
