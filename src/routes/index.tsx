@@ -19,6 +19,11 @@ const loadZip = () => import("jszip");
 
 
 export const Route = createFileRoute("/")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw redirect({ to: "/auth" });
+  },
   head: () => ({
     meta: [
       { title: "My Academy Solutions — Result Cards & Excel Sheets" },
