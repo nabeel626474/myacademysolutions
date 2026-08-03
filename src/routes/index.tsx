@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
@@ -85,6 +86,34 @@ function Index() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
   const [excelBusy, setExcelBusy] = useState(false);
+  const [classOptions, setClassOptions] = useState<{ value: string; label: string }[]>(() =>
+    CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+  );
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(!!session),
+    );
+    supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "class_options")
+      .maybeSingle()
+      .then(({ data }) => {
+        const options = data?.value;
+        if (Array.isArray(options) && options.length > 0) {
+          setClassOptions(options as { value: string; label: string }[]);
+          setCls((current) =>
+            (options as { value: string }[]).some((o) => o.value === current)
+              ? current
+              : (options as { value: string }[])[0].value,
+          );
+        }
+      });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   async function downloadExcelSheet() {
     const sources = done
@@ -94,7 +123,7 @@ function Index() {
     setExcelBusy(true);
     setNotice(null);
     try {
-      const label = CLASS_OPTIONS.find((o) => o.value === cls)?.label ?? cls;
+      const label = classOptions.find((o) => o.value === cls)?.label ?? cls;
       const { buildResultWorkbook } = await loadExcel();
       const blob = await buildResultWorkbook(sources, label);
       downloadBlob(blob, `FBISE-${cls}-Result-Sheet-${sources.length}.xlsx`);
@@ -164,12 +193,16 @@ function Index() {
     setRunning(true);
     setRows(rolls.map((rollNo) => ({ rollNo, status: "pending" as RowStatus })));
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+
     for (let i = 0; i < rolls.length; i++) {
       const rollNo = rolls[i];
       setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: "working" } : r)));
       try {
         const res = await fetch(
           `/api/public/fbise/result?class=${encodeURIComponent(cls)}&rollNo=${encodeURIComponent(rollNo)}`,
+          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
         const data = (await res.json()) as CardData | { ok: false; error: string };
         if (!("ok" in data) || data.ok !== true) {
@@ -252,8 +285,17 @@ function Index() {
               Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
             </h1>
           </div>
-          <div className="ml-auto self-start">
+          <div className="ml-auto flex items-center gap-2 self-start">
             <ThemeToggle />
+            {signedIn ? (
+              <Link to="/admin" className="btn-ghost">
+                Dashboard
+              </Link>
+            ) : (
+              <Link to="/auth" className="btn-ghost">
+                Staff Sign In
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -278,7 +320,7 @@ function Index() {
                 value={cls}
                 onChange={(e) => setCls(e.target.value)}
               >
-                {CLASS_OPTIONS.map((o) => (
+                {classOptions.map((o) => (
                   <option key={o.value + o.label} value={o.value}>
                     {o.label}
                   </option>
