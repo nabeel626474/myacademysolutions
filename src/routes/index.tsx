@@ -86,6 +86,33 @@ function Index() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
   const [excelBusy, setExcelBusy] = useState(false);
+  const [classOptions, setClassOptions] =
+    useState<{ value: string; label: string }[]>(CLASS_OPTIONS);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(!!session),
+    );
+    supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "class_options")
+      .maybeSingle()
+      .then(({ data }) => {
+        const options = data?.value;
+        if (Array.isArray(options) && options.length > 0) {
+          setClassOptions(options as { value: string; label: string }[]);
+          setCls((current) =>
+            (options as { value: string }[]).some((o) => o.value === current)
+              ? current
+              : (options as { value: string }[])[0].value,
+          );
+        }
+      });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   async function downloadExcelSheet() {
     const sources = done
