@@ -470,20 +470,24 @@ function Index() {
               </span>
             </div>
             <ul className="grid list-none gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
-
               {rows.map((row) => (
-                <div
+                <li
                   key={row.rollNo}
                   className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className={`h-1.5 w-full ${statusTone(row.status)}`} />
+                  <div className={`h-1.5 w-full ${statusTone(row.status)}`} aria-hidden="true" />
                   <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-2.5 w-2.5 rounded-full ring-4 ring-primary/10">
-                          <span className={`block h-full w-full rounded-full ${statusTone(row.status)}`} />
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="flex size-2.5 shrink-0 rounded-full ring-4 ring-primary/10"
+                        >
+                          <span
+                            className={`block h-full w-full rounded-full ${statusTone(row.status)}`}
+                          />
                         </span>
-                        <code className="font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        <code className="truncate font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                           Roll: {row.rollNo}
                         </code>
                       </div>
@@ -503,8 +507,8 @@ function Index() {
                     </div>
 
                     {row.status === "done" && row.card?.studentName ? (
-                      <div className="space-y-0.5">
-                        <h3 className="text-base font-bold leading-tight text-card-foreground">
+                      <div className="min-w-0 space-y-0.5">
+                        <h3 className="text-pretty text-base font-bold leading-tight text-card-foreground">
                           {row.card.studentName}
                         </h3>
                         {row.card.fatherName && (
@@ -514,11 +518,11 @@ function Index() {
                         )}
                       </div>
                     ) : (
-                      <div className="space-y-0.5">
+                      <div className="min-w-0 space-y-0.5">
                         <h3 className="text-base font-bold leading-tight text-card-foreground">
                           {row.rollNo}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-pretty text-xs text-muted-foreground">
                           {row.status === "failed"
                             ? row.message ?? "Could not fetch result"
                             : row.status === "working"
@@ -528,31 +532,27 @@ function Index() {
                       </div>
                     )}
 
-                    <div className="mt-auto h-px w-full bg-border" />
+                    <div className="mt-auto h-px w-full bg-border" aria-hidden="true" />
 
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       {row.status === "done" ? (
                         <>
                           <button
-                            className="btn-ghost"
+                            className="btn-ghost min-h-11"
                             onClick={() => previewOne(row)}
                             disabled={previewing !== null}
-                            aria-label="Preview result card"
-                            title="Preview"
+                            aria-label={`Preview result card for roll number ${row.rollNo}`}
                           >
-                            <Eye className="size-4" />
-                            <span className="hidden sm:inline">
-                              {previewing === row.rollNo ? "Preview…" : "Preview"}
-                            </span>
+                            <Eye className="size-4" aria-hidden="true" />
+                            <span>{previewing === row.rollNo ? "Preview…" : "Preview"}</span>
                           </button>
                           <button
-                            className="btn-ghost"
+                            className="btn-ghost min-h-11"
                             onClick={() => downloadOne(row)}
-                            aria-label="Download PDF"
-                            title="Download"
+                            aria-label={`Download PDF for roll number ${row.rollNo}`}
                           >
-                            <Download className="size-4" />
-                            <span className="hidden sm:inline">PDF</span>
+                            <Download className="size-4" aria-hidden="true" />
+                            <span>PDF</span>
                           </button>
                         </>
                       ) : (
@@ -562,9 +562,10 @@ function Index() {
                       )}
                     </div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
+
           </section>
         )}
 
