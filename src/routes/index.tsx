@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
