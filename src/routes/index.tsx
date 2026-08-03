@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
@@ -19,11 +19,6 @@ const loadZip = () => import("jszip");
 
 
 export const Route = createFileRoute("/")({
-  ssr: false,
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-  },
   head: () => ({
     meta: [
       { title: "My Academy Solutions — Result Cards & Excel Sheets" },
@@ -207,16 +202,12 @@ function Index() {
     setRunning(true);
     setRows(rolls.map((rollNo) => ({ rollNo, status: "pending" as RowStatus })));
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-
     for (let i = 0; i < rolls.length; i++) {
       const rollNo = rolls[i];
       setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: "working" } : r)));
       try {
         const res = await fetch(
           `/api/public/fbise/result?class=${encodeURIComponent(cls)}&rollNo=${encodeURIComponent(rollNo)}`,
-          token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
         const contentType = res.headers.get("content-type") ?? "";
         if (!contentType.includes("application/json")) {
@@ -322,6 +313,11 @@ function Index() {
               >
                 Sign out
               </button>
+            )}
+            {!signedIn && (
+              <Link to="/auth" className="btn-ghost">
+                Staff sign in
+              </Link>
             )}
           </div>
         </div>

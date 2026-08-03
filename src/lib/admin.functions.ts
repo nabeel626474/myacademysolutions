@@ -22,15 +22,6 @@ export const getSearchLogs = createServerFn({ method: "GET" })
     return admin.fetchSearchLogs(data.limit, data.search.trim());
   });
 
-export const setSiteLocked = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { locked: boolean }) => z.object({ locked: z.boolean() }).parse(data))
-  .handler(async ({ data, context }) => {
-    const admin = await import("@/lib/admin.server");
-    await admin.assertAdmin(context.supabase, context.userId);
-    return admin.saveSetting("site_locked", data.locked, context.userId);
-  });
-
 export const setClassOptions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { options: { value: string; label: string }[] }) =>
