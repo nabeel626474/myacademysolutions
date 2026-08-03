@@ -218,6 +218,12 @@ function Index() {
           `/api/public/fbise/result?class=${encodeURIComponent(cls)}&rollNo=${encodeURIComponent(rollNo)}`,
           token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
+        const contentType = res.headers.get("content-type") ?? "";
+        if (!contentType.includes("application/json")) {
+          throw new Error(
+            `Server error (${res.status}). The results API is not responding on this domain — please use the official site.`,
+          );
+        }
         const data = (await res.json()) as CardData | { ok: false; error: string };
         if (!("ok" in data) || data.ok !== true) {
           const message = "error" in data ? data.error : "Result not found";
