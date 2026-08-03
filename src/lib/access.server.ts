@@ -79,3 +79,9 @@ export async function logSearch(entry: {
     console.error("[search_logs] insert failed", e);
   }
 }
+
+/** True once at least one admin account exists (used to hide first-time signup). */
+export async function adminExists(): Promise<boolean> {
+  const { data } = await supabaseAdmin.from("user_roles").select("id").eq("role", "admin").limit(1);
+  return (data?.length ?? 0) > 0;
+}
