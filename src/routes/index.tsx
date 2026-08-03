@@ -420,7 +420,7 @@ function Index() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <button
-              className="btn-primary"
+              className="btn-primary min-h-11 justify-center text-center"
               onClick={downloadExcelSheet}
               disabled={excelBusy || running || done.length === 0}
             >
@@ -429,21 +429,21 @@ function Index() {
                 : `Excel Sheet — Marks, %, Grade (${done.length})`}
             </button>
             <button
-              className="btn-primary"
+              className="btn-primary min-h-11 justify-center text-center"
               onClick={downloadSinglePdf}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
               {merging ? `Building PDF… ${merging}` : `All Result Cards — 1 PDF (${done.length})`}
             </button>
             <button
-              className="btn-primary"
+              className="btn-primary min-h-11 justify-center text-center"
               onClick={downloadZip}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
               {zipping ? "Building ZIP…" : "Individual PDFs (ZIP)"}
             </button>
             <button
-              className="btn-ghost"
+              className="btn-ghost min-h-11 justify-center text-center"
               onClick={previewAll}
               disabled={
                 previewing !== null || merging !== null || zipping || running || done.length === 0
@@ -452,6 +452,7 @@ function Index() {
               {previewing === "all" ? `Building preview… ${merging ?? ""}` : "Preview All"}
             </button>
           </div>
+
           <p className="mt-3 text-xs text-muted-foreground">
             The Excel file includes a class summary plus a separate sheet for every subject — with
             marks obtained, total marks, percentage and grade.
