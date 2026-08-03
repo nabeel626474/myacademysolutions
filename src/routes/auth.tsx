@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { checkAdminExists } from "@/lib/public.functions";
 import logoUrl from "@/assets/academy-logo.png";
 
 export const Route = createFileRoute("/auth")({
@@ -35,11 +36,15 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState(true);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/admin", replace: true });
+      if (data.user) navigate({ to: "/", replace: true });
     });
+    checkAdminExists()
+      .then((r) => setAdminExists(r.adminExists))
+      .catch(() => setAdminExists(true));
   }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -51,7 +56,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/admin", replace: true });
+        navigate({ to: "/", replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -152,22 +157,19 @@ function AuthPage() {
             </button>
           </form>
 
-          <button
-            className="btn-ghost mt-4 w-full"
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              setError(null);
-              setInfo(null);
-            }}
-          >
-            {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
-          </button>
+          {!adminExists && (
+            <button
+              className="btn-ghost mt-4 w-full"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
+                setError(null);
+                setInfo(null);
+              }}
+            >
+              {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
+            </button>
+          )}
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            <Link to="/" className="underline">
-              Back to result cards
-            </Link>
-          </p>
         </section>
       </main>
     </div>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
@@ -19,6 +19,11 @@ const loadZip = () => import("jszip");
 
 
 export const Route = createFileRoute("/")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw redirect({ to: "/auth" });
+  },
   head: () => ({
     meta: [
       { title: "My Academy Solutions — Result Cards & Excel Sheets" },
@@ -90,12 +95,21 @@ function Index() {
     CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
   );
   const [signedIn, setSignedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
     );
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .then(({ data: roles }) => setIsAdmin(!!roles?.some((r) => r.role === "admin")));
+    });
     supabase
       .from("app_settings")
       .select("value")
@@ -287,14 +301,21 @@ function Index() {
           </div>
           <div className="ml-auto flex items-center gap-2 self-start">
             <ThemeToggle />
-            {signedIn ? (
+            {isAdmin && (
               <Link to="/admin" className="btn-ghost">
                 Dashboard
               </Link>
-            ) : (
-              <Link to="/auth" className="btn-ghost">
-                Staff Sign In
-              </Link>
+            )}
+            {signedIn && (
+              <button
+                className="btn-ghost"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/auth";
+                }}
+              >
+                Sign out
+              </button>
             )}
           </div>
         </div>
