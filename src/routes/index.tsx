@@ -285,8 +285,17 @@ function Index() {
               Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
             </h1>
           </div>
-          <div className="ml-auto self-start">
+          <div className="ml-auto flex items-center gap-2 self-start">
             <ThemeToggle />
+            {signedIn ? (
+              <Link to="/admin" className="btn-ghost">
+                Dashboard
+              </Link>
+            ) : (
+              <Link to="/auth" className="btn-ghost">
+                Staff Sign In
+              </Link>
+            )}
           </div>
         </div>
       </header>
