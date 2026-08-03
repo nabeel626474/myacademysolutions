@@ -153,22 +153,19 @@ function AuthPage() {
             </button>
           </form>
 
-          <button
-            className="btn-ghost mt-4 w-full"
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              setError(null);
-              setInfo(null);
-            }}
-          >
-            {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
-          </button>
+          {!adminExists && (
+            <button
+              className="btn-ghost mt-4 w-full"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
+                setError(null);
+                setInfo(null);
+              }}
+            >
+              {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
+            </button>
+          )}
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            <Link to="/" className="underline">
-              Back to result cards
-            </Link>
-          </p>
         </section>
       </main>
     </div>
