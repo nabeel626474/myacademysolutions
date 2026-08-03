@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { checkAdminExists } from "@/lib/public.functions";
 import logoUrl from "@/assets/academy-logo.png";
 
 export const Route = createFileRoute("/auth")({
