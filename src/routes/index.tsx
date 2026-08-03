@@ -123,7 +123,7 @@ function Index() {
     setExcelBusy(true);
     setNotice(null);
     try {
-      const label = CLASS_OPTIONS.find((o) => o.value === cls)?.label ?? cls;
+      const label = classOptions.find((o) => o.value === cls)?.label ?? cls;
       const { buildResultWorkbook } = await loadExcel();
       const blob = await buildResultWorkbook(sources, label);
       downloadBlob(blob, `FBISE-${cls}-Result-Sheet-${sources.length}.xlsx`);
@@ -307,7 +307,7 @@ function Index() {
                 value={cls}
                 onChange={(e) => setCls(e.target.value)}
               >
-                {CLASS_OPTIONS.map((o) => (
+                {classOptions.map((o) => (
                   <option key={o.value + o.label} value={o.value}>
                     {o.label}
                   </option>
