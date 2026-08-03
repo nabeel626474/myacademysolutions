@@ -86,8 +86,9 @@ function Index() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
   const [excelBusy, setExcelBusy] = useState(false);
-  const [classOptions, setClassOptions] =
-    useState<{ value: string; label: string }[]>(CLASS_OPTIONS);
+  const [classOptions, setClassOptions] = useState<{ value: string; label: string }[]>(() =>
+    CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+  );
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
