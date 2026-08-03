@@ -584,33 +584,36 @@ function Index() {
 
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-2 backdrop-blur-sm sm:p-4"
           role="dialog"
           aria-modal="true"
-          aria-label="Result card PDF preview"
+          aria-labelledby="preview-title"
           onClick={closePreview}
         >
           <div
-            className="panel flex h-full max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden"
+            className="panel flex h-full max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3">
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold">PDF Preview</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+              <div className="min-w-0 flex-1">
+                <h2 id="preview-title" className="text-sm font-semibold">
+                  PDF Preview
+                </h2>
                 <p className="truncate text-xs text-muted-foreground">{preview.label}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 gap-2">
                 <button
-                  className="btn-primary"
+                  className="btn-primary min-h-11"
                   onClick={() => downloadBlob(preview.blob, preview.name)}
                 >
                   Download PDF
                 </button>
-                <button className="btn-ghost" onClick={closePreview}>
+                <button className="btn-ghost min-h-11" onClick={closePreview} autoFocus>
                   Close
                 </button>
               </div>
             </div>
+
             <div className="flex-1 overflow-auto bg-muted p-4">
               <div className="mx-auto flex max-w-3xl flex-col gap-4">
                 {preview.pages.map((src, i) => (
