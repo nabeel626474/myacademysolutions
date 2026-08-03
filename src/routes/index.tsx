@@ -148,6 +148,20 @@ function Index() {
     setPreview(null);
   }
 
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreview(null);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [preview]);
+
+
   async function previewOne(row: Row) {
     if (!row.card) return;
     setPreviewing(row.rollNo);
