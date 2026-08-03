@@ -148,6 +148,20 @@ function Index() {
     setPreview(null);
   }
 
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreview(null);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [preview]);
+
+
   async function previewOne(row: Row) {
     if (!row.card) return;
     setPreviewing(row.rollNo);
@@ -278,62 +292,75 @@ function Index() {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
+      <a href="#main" className="skip-link">
+        Skip to main content
+      </a>
       <header className="hero-band">
-        <div className="mx-auto flex max-w-5xl items-center gap-5 px-5 py-9">
-          <img
-            src={logoUrl}
-            alt="My Academy Solutions logo"
-            className="size-16 shrink-0 rounded-full bg-card p-1 shadow-md sm:size-20"
-            width={80}
-            height={80}
-          />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] opacity-80">
+        <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-8">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+            <img
+              src={logoUrl}
+              alt="My Academy Solutions logo"
+              className="size-12 shrink-0 rounded-full bg-card p-1 shadow-md sm:size-16"
+              width={64}
+              height={64}
+            />
+            <p className="min-w-0 truncate text-[0.7rem] font-semibold uppercase tracking-[0.22em] opacity-85 sm:text-xs">
               My Academy Solutions
             </p>
-            <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-4xl">
-              Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
-            </h1>
+            <nav aria-label="Account" className="flex items-center gap-2">
+              <ThemeToggle />
+              {isAdmin && (
+                <Link to="/admin" className="btn-ghost btn-on-hero">
+                  Dashboard
+                </Link>
+              )}
+              {signedIn ? (
+                <button
+                  className="btn-ghost btn-on-hero"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = "/auth";
+                  }}
+                >
+                  Sign out
+                </button>
+              ) : (
+                <Link to="/auth" className="btn-ghost btn-on-hero">
+                  <span className="sm:hidden">Sign in</span>
+                  <span className="hidden sm:inline">Staff sign in</span>
+                </Link>
+              )}
+            </nav>
           </div>
-          <div className="ml-auto flex items-center gap-2 self-start">
-            <ThemeToggle />
-            {isAdmin && (
-              <Link to="/admin" className="btn-ghost">
-                Dashboard
-              </Link>
-            )}
-            {signedIn && (
-              <button
-                className="btn-ghost"
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = "/auth";
-                }}
-              >
-                Sign out
-              </button>
-            )}
-            {!signedIn && (
-              <Link to="/auth" className="btn-ghost">
-                Staff sign in
-              </Link>
-            )}
-          </div>
+
+          <h1 className="mt-5 text-balance text-2xl font-bold leading-tight sm:text-4xl">
+            Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
+          </h1>
+          <p className="mt-2 max-w-2xl text-pretty text-sm leading-relaxed opacity-85 sm:text-base">
+            Enter roll numbers to get official result card PDFs plus an automatic Excel sheet with
+            marks, totals, percentage and grade.
+          </p>
         </div>
       </header>
 
+      <main id="main" className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
 
-      <main className="mx-auto max-w-5xl px-5 py-8">
-        <section className="panel p-6">
+        <section className="panel p-5 sm:p-6" aria-labelledby="step-1">
           <div className="mb-5 flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <span
+              aria-hidden="true"
+              className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+            >
               1
             </span>
-            <h2 className="text-sm font-semibold">Select class and enter roll numbers</h2>
+            <h2 id="step-1" className="text-sm font-semibold">
+              Select class and enter roll numbers
+            </h2>
           </div>
           <div className="grid gap-5 sm:grid-cols-[minmax(0,260px)_1fr]">
-            <div>
+            <div className="min-w-0">
               <label htmlFor="cls" className="mb-1.5 block text-sm font-semibold">
                 Class / Examination
               </label>
@@ -351,7 +378,7 @@ function Index() {
               </select>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label htmlFor="rolls" className="mb-1.5 block text-sm font-semibold">
                 Roll Numbers
               </label>
@@ -362,36 +389,52 @@ function Index() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 maxLength={6000}
+                aria-describedby="rolls-help"
+                aria-invalid={notice ? true : undefined}
               />
-              <p className="mt-1.5 text-xs text-muted-foreground">
+              <p id="rolls-help" className="mt-1.5 text-xs text-muted-foreground">
                 Separate with commas, spaces or new lines. Ranges work too (100100-100120).
                 Maximum 300 roll numbers at a time.
               </p>
             </div>
           </div>
 
-          {notice && <p className="mt-4 text-sm font-medium text-destructive">{notice}</p>}
+          <p role="alert" aria-live="assertive" className="empty:hidden">
+            {notice && (
+              <span className="mt-4 block text-sm font-medium text-destructive">{notice}</span>
+            )}
+          </p>
 
           <div className="mt-5">
-            <button className="btn-primary" onClick={handleRun} disabled={running}>
+            <button
+              className="btn-primary w-full sm:w-auto"
+              onClick={handleRun}
+              disabled={running}
+            >
               {running ? "Fetching results…" : "Get Results"}
             </button>
           </div>
         </section>
 
-        <section className="panel mt-6 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+        <section className="panel mt-6 p-5 sm:p-6" aria-labelledby="step-2">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+            >
               2
             </span>
-            <h2 className="text-sm font-semibold">Download</h2>
-            <span className="ml-auto text-xs text-muted-foreground">
-              {done.length} result ready
+            <h2 id="step-2" className="text-sm font-semibold">
+              Download
+            </h2>
+            <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+              {done.length} result{done.length === 1 ? "" : "s"} ready
             </span>
           </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <button
-              className="btn-primary"
+              className="btn-primary min-h-11 justify-center text-center"
               onClick={downloadExcelSheet}
               disabled={excelBusy || running || done.length === 0}
             >
@@ -400,21 +443,21 @@ function Index() {
                 : `Excel Sheet — Marks, %, Grade (${done.length})`}
             </button>
             <button
-              className="btn-primary"
+              className="btn-primary min-h-11 justify-center text-center"
               onClick={downloadSinglePdf}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
               {merging ? `Building PDF… ${merging}` : `All Result Cards — 1 PDF (${done.length})`}
             </button>
             <button
-              className="btn-primary"
+              className="btn-primary min-h-11 justify-center text-center"
               onClick={downloadZip}
               disabled={merging !== null || zipping || running || done.length === 0}
             >
               {zipping ? "Building ZIP…" : "Individual PDFs (ZIP)"}
             </button>
             <button
-              className="btn-ghost"
+              className="btn-ghost min-h-11 justify-center text-center"
               onClick={previewAll}
               disabled={
                 previewing !== null || merging !== null || zipping || running || done.length === 0
@@ -423,6 +466,7 @@ function Index() {
               {previewing === "all" ? `Building preview… ${merging ?? ""}` : "Preview All"}
             </button>
           </div>
+
           <p className="mt-3 text-xs text-muted-foreground">
             The Excel file includes a class summary plus a separate sheet for every subject — with
             marks obtained, total marks, percentage and grade.
@@ -431,27 +475,34 @@ function Index() {
 
 
         {rows.length > 0 && (
-          <section className="panel mt-6 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <h2 className="text-sm font-semibold">Results</h2>
-              <span className="text-xs text-muted-foreground">
+          <section className="panel mt-6 overflow-hidden" aria-labelledby="results-heading">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
+              <h2 id="results-heading" className="text-sm font-semibold">
+                Results
+              </h2>
+              <span className="text-xs text-muted-foreground" aria-live="polite">
                 {done.length} / {rows.length} ready
               </span>
             </div>
-            <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid list-none gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
               {rows.map((row) => (
-                <div
+                <li
                   key={row.rollNo}
                   className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className={`h-1.5 w-full ${statusTone(row.status)}`} />
+                  <div className={`h-1.5 w-full ${statusTone(row.status)}`} aria-hidden="true" />
                   <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-2.5 w-2.5 rounded-full ring-4 ring-primary/10">
-                          <span className={`block h-full w-full rounded-full ${statusTone(row.status)}`} />
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="flex size-2.5 shrink-0 rounded-full ring-4 ring-primary/10"
+                        >
+                          <span
+                            className={`block h-full w-full rounded-full ${statusTone(row.status)}`}
+                          />
                         </span>
-                        <code className="font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        <code className="truncate font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                           Roll: {row.rollNo}
                         </code>
                       </div>
@@ -471,8 +522,8 @@ function Index() {
                     </div>
 
                     {row.status === "done" && row.card?.studentName ? (
-                      <div className="space-y-0.5">
-                        <h3 className="text-base font-bold leading-tight text-card-foreground">
+                      <div className="min-w-0 space-y-0.5">
+                        <h3 className="text-pretty text-base font-bold leading-tight text-card-foreground">
                           {row.card.studentName}
                         </h3>
                         {row.card.fatherName && (
@@ -482,11 +533,11 @@ function Index() {
                         )}
                       </div>
                     ) : (
-                      <div className="space-y-0.5">
+                      <div className="min-w-0 space-y-0.5">
                         <h3 className="text-base font-bold leading-tight text-card-foreground">
                           {row.rollNo}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-pretty text-xs text-muted-foreground">
                           {row.status === "failed"
                             ? row.message ?? "Could not fetch result"
                             : row.status === "working"
@@ -496,31 +547,27 @@ function Index() {
                       </div>
                     )}
 
-                    <div className="mt-auto h-px w-full bg-border" />
+                    <div className="mt-auto h-px w-full bg-border" aria-hidden="true" />
 
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       {row.status === "done" ? (
                         <>
                           <button
-                            className="btn-ghost"
+                            className="btn-ghost min-h-11"
                             onClick={() => previewOne(row)}
                             disabled={previewing !== null}
-                            aria-label="Preview result card"
-                            title="Preview"
+                            aria-label={`Preview result card for roll number ${row.rollNo}`}
                           >
-                            <Eye className="size-4" />
-                            <span className="hidden sm:inline">
-                              {previewing === row.rollNo ? "Preview…" : "Preview"}
-                            </span>
+                            <Eye className="size-4" aria-hidden="true" />
+                            <span>{previewing === row.rollNo ? "Preview…" : "Preview"}</span>
                           </button>
                           <button
-                            className="btn-ghost"
+                            className="btn-ghost min-h-11"
                             onClick={() => downloadOne(row)}
-                            aria-label="Download PDF"
-                            title="Download"
+                            aria-label={`Download PDF for roll number ${row.rollNo}`}
                           >
-                            <Download className="size-4" />
-                            <span className="hidden sm:inline">PDF</span>
+                            <Download className="size-4" aria-hidden="true" />
+                            <span>PDF</span>
                           </button>
                         </>
                       ) : (
@@ -530,9 +577,10 @@ function Index() {
                       )}
                     </div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
+
           </section>
         )}
 
@@ -550,33 +598,36 @@ function Index() {
 
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-2 backdrop-blur-sm sm:p-4"
           role="dialog"
           aria-modal="true"
-          aria-label="Result card PDF preview"
+          aria-labelledby="preview-title"
           onClick={closePreview}
         >
           <div
-            className="panel flex h-full max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden"
+            className="panel flex h-full max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3">
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold">PDF Preview</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+              <div className="min-w-0 flex-1">
+                <h2 id="preview-title" className="text-sm font-semibold">
+                  PDF Preview
+                </h2>
                 <p className="truncate text-xs text-muted-foreground">{preview.label}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 gap-2">
                 <button
-                  className="btn-primary"
+                  className="btn-primary min-h-11"
                   onClick={() => downloadBlob(preview.blob, preview.name)}
                 >
                   Download PDF
                 </button>
-                <button className="btn-ghost" onClick={closePreview}>
+                <button className="btn-ghost min-h-11" onClick={closePreview} autoFocus>
                   Close
                 </button>
               </div>
             </div>
+
             <div className="flex-1 overflow-auto bg-muted p-4">
               <div className="mx-auto flex max-w-3xl flex-col gap-4">
                 {preview.pages.map((src, i) => (
