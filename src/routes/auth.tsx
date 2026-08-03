@@ -56,7 +56,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/admin", replace: true });
+        navigate({ to: "/", replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
