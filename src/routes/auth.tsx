@@ -36,11 +36,15 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState(true);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/admin", replace: true });
+      if (data.user) navigate({ to: "/", replace: true });
     });
+    checkAdminExists()
+      .then((r) => setAdminExists(r.adminExists))
+      .catch(() => setAdminExists(true));
   }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
