@@ -278,53 +278,61 @@ function Index() {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
+      <a href="#main" className="skip-link">
+        Skip to main content
+      </a>
       <header className="hero-band">
-        <div className="mx-auto flex max-w-5xl items-center gap-5 px-5 py-9">
-          <img
-            src={logoUrl}
-            alt="My Academy Solutions logo"
-            className="size-16 shrink-0 rounded-full bg-card p-1 shadow-md sm:size-20"
-            width={80}
-            height={80}
-          />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] opacity-80">
+        <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-8">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+            <img
+              src={logoUrl}
+              alt="My Academy Solutions logo"
+              className="size-12 shrink-0 rounded-full bg-card p-1 shadow-md sm:size-16"
+              width={64}
+              height={64}
+            />
+            <p className="min-w-0 truncate text-[0.7rem] font-semibold uppercase tracking-[0.22em] opacity-85 sm:text-xs">
               My Academy Solutions
             </p>
-            <h1 className="mt-2 text-2xl font-bold leading-tight sm:text-4xl">
-              Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
-            </h1>
+            <nav aria-label="Account" className="flex items-center gap-2">
+              <ThemeToggle />
+              {isAdmin && (
+                <Link to="/admin" className="btn-ghost btn-on-hero">
+                  Dashboard
+                </Link>
+              )}
+              {signedIn ? (
+                <button
+                  className="btn-ghost btn-on-hero"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = "/auth";
+                  }}
+                >
+                  Sign out
+                </button>
+              ) : (
+                <Link to="/auth" className="btn-ghost btn-on-hero">
+                  <span className="sm:hidden">Sign in</span>
+                  <span className="hidden sm:inline">Staff sign in</span>
+                </Link>
+              )}
+            </nav>
           </div>
-          <div className="ml-auto flex items-center gap-2 self-start">
-            <ThemeToggle />
-            {isAdmin && (
-              <Link to="/admin" className="btn-ghost">
-                Dashboard
-              </Link>
-            )}
-            {signedIn && (
-              <button
-                className="btn-ghost"
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = "/auth";
-                }}
-              >
-                Sign out
-              </button>
-            )}
-            {!signedIn && (
-              <Link to="/auth" className="btn-ghost">
-                Staff sign in
-              </Link>
-            )}
-          </div>
+
+          <h1 className="mt-5 text-balance text-2xl font-bold leading-tight sm:text-4xl">
+            Welcome to <span className="text-gradient-gold">My Academy Solutions</span>
+          </h1>
+          <p className="mt-2 max-w-2xl text-pretty text-sm leading-relaxed opacity-85 sm:text-base">
+            Enter roll numbers to get official result card PDFs plus an automatic Excel sheet with
+            marks, totals, percentage and grade.
+          </p>
         </div>
       </header>
 
+      <main id="main" className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
 
-      <main className="mx-auto max-w-5xl px-5 py-8">
         <section className="panel p-6">
           <div className="mb-5 flex items-center gap-2">
             <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
