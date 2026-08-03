@@ -333,15 +333,20 @@ function Index() {
 
       <main id="main" className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
 
-        <section className="panel p-6">
+        <section className="panel p-5 sm:p-6" aria-labelledby="step-1">
           <div className="mb-5 flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <span
+              aria-hidden="true"
+              className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+            >
               1
             </span>
-            <h2 className="text-sm font-semibold">Select class and enter roll numbers</h2>
+            <h2 id="step-1" className="text-sm font-semibold">
+              Select class and enter roll numbers
+            </h2>
           </div>
           <div className="grid gap-5 sm:grid-cols-[minmax(0,260px)_1fr]">
-            <div>
+            <div className="min-w-0">
               <label htmlFor="cls" className="mb-1.5 block text-sm font-semibold">
                 Class / Examination
               </label>
@@ -359,7 +364,7 @@ function Index() {
               </select>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label htmlFor="rolls" className="mb-1.5 block text-sm font-semibold">
                 Roll Numbers
               </label>
@@ -370,33 +375,49 @@ function Index() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 maxLength={6000}
+                aria-describedby="rolls-help"
+                aria-invalid={notice ? true : undefined}
               />
-              <p className="mt-1.5 text-xs text-muted-foreground">
+              <p id="rolls-help" className="mt-1.5 text-xs text-muted-foreground">
                 Separate with commas, spaces or new lines. Ranges work too (100100-100120).
                 Maximum 300 roll numbers at a time.
               </p>
             </div>
           </div>
 
-          {notice && <p className="mt-4 text-sm font-medium text-destructive">{notice}</p>}
+          <p role="alert" aria-live="assertive" className="empty:hidden">
+            {notice && (
+              <span className="mt-4 block text-sm font-medium text-destructive">{notice}</span>
+            )}
+          </p>
 
           <div className="mt-5">
-            <button className="btn-primary" onClick={handleRun} disabled={running}>
+            <button
+              className="btn-primary w-full sm:w-auto"
+              onClick={handleRun}
+              disabled={running}
+            >
               {running ? "Fetching results…" : "Get Results"}
             </button>
           </div>
         </section>
 
-        <section className="panel mt-6 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+        <section className="panel mt-6 p-5 sm:p-6" aria-labelledby="step-2">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+            >
               2
             </span>
-            <h2 className="text-sm font-semibold">Download</h2>
-            <span className="ml-auto text-xs text-muted-foreground">
-              {done.length} result ready
+            <h2 id="step-2" className="text-sm font-semibold">
+              Download
+            </h2>
+            <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+              {done.length} result{done.length === 1 ? "" : "s"} ready
             </span>
           </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <button
               className="btn-primary"
