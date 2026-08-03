@@ -95,12 +95,21 @@ function Index() {
     CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
   );
   const [signedIn, setSignedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
     );
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .then(({ data: roles }) => setIsAdmin(!!roles?.some((r) => r.role === "admin")));
+    });
     supabase
       .from("app_settings")
       .select("value")
