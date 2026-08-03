@@ -27,11 +27,17 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle dark mode"
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-pressed={mounted ? theme === "dark" : undefined}
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       className="theme-toggle"
     >
-      {mounted && theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {mounted && theme === "dark" ? (
+        <Sun className="size-4" aria-hidden="true" />
+      ) : (
+        <Moon className="size-4" aria-hidden="true" />
+      )}
     </button>
   );
 }
+
