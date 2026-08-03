@@ -460,14 +460,17 @@ function Index() {
 
 
         {rows.length > 0 && (
-          <section className="panel mt-6 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <h2 className="text-sm font-semibold">Results</h2>
-              <span className="text-xs text-muted-foreground">
+          <section className="panel mt-6 overflow-hidden" aria-labelledby="results-heading">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
+              <h2 id="results-heading" className="text-sm font-semibold">
+                Results
+              </h2>
+              <span className="text-xs text-muted-foreground" aria-live="polite">
                 {done.length} / {rows.length} ready
               </span>
             </div>
-            <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid list-none gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+
               {rows.map((row) => (
                 <div
                   key={row.rollNo}
