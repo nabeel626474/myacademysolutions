@@ -292,14 +292,21 @@ function Index() {
           </div>
           <div className="ml-auto flex items-center gap-2 self-start">
             <ThemeToggle />
-            {signedIn ? (
+            {isAdmin && (
               <Link to="/admin" className="btn-ghost">
                 Dashboard
               </Link>
-            ) : (
-              <Link to="/auth" className="btn-ghost">
-                Staff Sign In
-              </Link>
+            )}
+            {signedIn && (
+              <button
+                className="btn-ghost"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/auth";
+                }}
+              >
+                Sign out
+              </button>
             )}
           </div>
         </div>
