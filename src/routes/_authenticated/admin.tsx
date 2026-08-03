@@ -12,7 +12,6 @@ import {
   getAdminOverview,
   getSearchLogs,
   setClassOptions,
-  setSiteLocked,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -22,12 +21,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
       {
         name: "description",
         content:
-          "Review roll-number search history, lock the site to staff only, manage class options and staff accounts.",
+          "Review roll-number search history and manage class options and staff accounts.",
       },
       { property: "og:title", content: "Admin Dashboard — My Academy Solutions" },
       {
         property: "og:description",
-        content: "Search history, site lock, class options and staff management.",
+        content: "Search history, class options and staff management.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -71,13 +70,6 @@ function AdminPage() {
     queryClient.invalidateQueries({ queryKey: ["admin-logs"] });
   };
   const onError = (e: unknown) => setError((e as Error).message);
-
-  const lockFn = useServerFn(setSiteLocked);
-  const lockMutation = useMutation({
-    mutationFn: (locked: boolean) => lockFn({ data: { locked } }),
-    onSuccess: invalidate,
-    onError,
-  });
 
   const classFn = useServerFn(setClassOptions);
   const classMutation = useMutation({
@@ -254,25 +246,6 @@ function AdminPage() {
 
         {tab === "settings" && (
           <div className="space-y-6">
-            <section className="panel p-6">
-              <h2 className="text-sm font-semibold">Site lock</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                When locked, only signed-in staff can fetch results. Visitors are asked to sign in.
-              </p>
-              <div className="mt-4 flex items-center gap-3">
-                <span className="text-sm font-medium">
-                  Currently: {settings?.siteLocked ? "Locked (staff only)" : "Open to everyone"}
-                </span>
-                <button
-                  className="btn-primary ml-auto"
-                  disabled={!settings || lockMutation.isPending}
-                  onClick={() => lockMutation.mutate(!settings?.siteLocked)}
-                >
-                  {settings?.siteLocked ? "Unlock site" : "Lock site"}
-                </button>
-              </div>
-            </section>
-
             <section className="panel p-6">
               <h2 className="text-sm font-semibold">Class / examination options</h2>
               <p className="mt-1 text-sm text-muted-foreground">
