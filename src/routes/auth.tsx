@@ -40,7 +40,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/", replace: true });
+      if (data.user) navigate({ to: "/admin", replace: true });
     });
     checkAdminExists()
       .then((r) => setAdminExists(r.adminExists))
@@ -56,7 +56,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/", replace: true });
+        navigate({ to: "/admin", replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
