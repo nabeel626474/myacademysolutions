@@ -76,7 +76,6 @@ function statusLabel(status: RowStatus): string {
 type Preview = { pages: string[]; blob: Blob; name: string; label: string };
 
 function Index() {
-  const navigate = Route.useNavigate();
   const [cls, setCls] = useState<string>(CLASS_OPTIONS[0].value);
   const [input, setInput] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
@@ -124,11 +123,6 @@ function Index() {
       });
     return () => sub.subscription.unsubscribe();
   }, []);
-useEffect(() => {
-  if (signedIn && isAdmin) {
-    navigate({ to: "/admin" });
-  }
-}, [signedIn, isAdmin, navigate]);
   async function downloadExcelSheet() {
     const sources = done
       .filter((r) => r.card)
