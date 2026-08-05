@@ -76,7 +76,9 @@ function statusLabel(status: RowStatus): string {
 type Preview = { pages: string[]; blob: Blob; name: string; label: string };
 
 function Index() {
+  const navigate = useNavigate();
   const [cls, setCls] = useState<string>(CLASS_OPTIONS[0].value);
+
   const [input, setInput] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [running, setRunning] = useState(false);
