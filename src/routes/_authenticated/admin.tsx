@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SchoolRanking } from "@/components/school-ranking";
+
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import {
   addStaffMember,
