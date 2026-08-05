@@ -329,7 +329,152 @@
 
     transform: translateY(-1px);
   }
+
+  /* ---------- Animated sign-in screen ---------- */
+  .auth-screen {
+    position: relative;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-image: var(--gradient-header);
+    color: oklch(0.985 0.01 145);
+    padding: 2rem 1rem;
+  }
+  .auth-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(60px);
+    opacity: 0.55;
+    pointer-events: none;
+    animation: auth-float 14s ease-in-out infinite;
+  }
+  .auth-orb-1 {
+    width: 22rem;
+    height: 22rem;
+    top: -6rem;
+    left: -6rem;
+    background: var(--gradient-gold);
+  }
+  .auth-orb-2 {
+    width: 26rem;
+    height: 26rem;
+    bottom: -8rem;
+    right: -8rem;
+    background: var(--gradient-primary, var(--gradient-gold));
+    animation-delay: -6s;
+  }
+  .auth-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(oklch(1 0 0 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.06) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+    animation: auth-pan 40s linear infinite;
+  }
+  .auth-card {
+    position: relative;
+    width: 100%;
+    max-width: 26rem;
+    border-radius: calc(var(--radius) + 6px);
+    border: 1px solid oklch(1 0 0 / 0.18);
+    background-color: oklch(1 0 0 / 0.1);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 30px 70px -30px oklch(0 0 0 / 0.75);
+    padding: 1.75rem;
+    animation: auth-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .auth-card::before {
+    content: "";
+    position: absolute;
+    inset-inline: 12%;
+    top: 0;
+    height: 2px;
+    background-image: var(--gradient-gold);
+    border-radius: 9999px;
+  }
+  .auth-stagger > * {
+    animation: auth-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .auth-stagger > *:nth-child(1) { animation-delay: 0.06s; }
+  .auth-stagger > *:nth-child(2) { animation-delay: 0.12s; }
+  .auth-stagger > *:nth-child(3) { animation-delay: 0.18s; }
+  .auth-stagger > *:nth-child(4) { animation-delay: 0.24s; }
+  .auth-stagger > *:nth-child(5) { animation-delay: 0.3s; }
+  .auth-field {
+    width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid oklch(1 0 0 / 0.22);
+    background-color: oklch(1 0 0 / 0.1);
+    color: inherit;
+    padding: 0.75rem 0.9rem;
+    font-size: 1rem;
+    min-height: 2.9rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .auth-field::placeholder {
+    color: oklch(1 0 0 / 0.55);
+  }
+  .auth-field:focus {
+    outline: none;
+    border-color: oklch(1 0 0 / 0.6);
+    background-color: oklch(1 0 0 / 0.16);
+    box-shadow: 0 0 0 4px oklch(1 0 0 / 0.1);
+  }
+  .auth-submit {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 2.9rem;
+    border-radius: var(--radius);
+    font-weight: 700;
+    background-image: var(--gradient-gold);
+    color: oklch(0.2 0.03 150);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+  .auth-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px -14px oklch(0 0 0 / 0.8);
+  }
+  .auth-submit:disabled {
+    opacity: 0.7;
+  }
+  .auth-submit::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, oklch(1 0 0 / 0.55), transparent 70%);
+    transform: translateX(-120%);
+    animation: auth-shine 3.2s ease-in-out infinite;
+  }
+  .auth-logo {
+    animation: auth-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes auth-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes auth-pop {
+    from { opacity: 0; transform: scale(0.8) rotate(-8deg); }
+    to { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  @keyframes auth-float {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(30px, 26px, 0) scale(1.12); }
+  }
+  @keyframes auth-pan {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 46px 46px, 46px 46px; }
+  }
+  @keyframes auth-shine {
+    0%, 60% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+  }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   *,
