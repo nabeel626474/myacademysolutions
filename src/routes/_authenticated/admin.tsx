@@ -161,7 +161,7 @@ function AdminPage() {
 
       <main className="mx-auto max-w-6xl px-5 py-8">
         <div className="mb-5 flex flex-wrap gap-2">
-          {(["history", "settings", "staff"] as const).map((t) => (
+          {(["history", "ranking", "settings", "staff"] as const).map((t) => (
             <button
               key={t}
               className={t === tab ? "btn-primary" : "btn-ghost"}
@@ -170,9 +170,16 @@ function AdminPage() {
                 setError(null);
               }}
             >
-              {t === "history" ? "Search History" : t === "settings" ? "Site Settings" : "Staff"}
+              {t === "history"
+                ? "Search History"
+                : t === "ranking"
+                  ? "School Ranking"
+                  : t === "settings"
+                    ? "Site Settings"
+                    : "Staff"}
             </button>
           ))}
+
         </div>
 
         {error && (
