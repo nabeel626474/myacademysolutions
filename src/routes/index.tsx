@@ -91,9 +91,14 @@ function Index() {
   );
   const [signedIn, setSignedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session);
+      setAuthChecked(true);
+      if (!data.session) navigate({ to: "/auth", replace: true });
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
     );
@@ -122,7 +127,8 @@ function Index() {
         }
       });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
+
   async function downloadExcelSheet() {
     const sources = done
       .filter((r) => r.card)
