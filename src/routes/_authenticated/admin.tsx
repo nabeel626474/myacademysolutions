@@ -251,7 +251,10 @@ function AdminPage() {
           </section>
         )}
 
+        {tab === "ranking" && <SchoolRanking />}
+
         {tab === "settings" && (
+
           <div className="space-y-6">
             <section className="panel p-6">
               <h2 className="text-sm font-semibold">Class / examination options</h2>
