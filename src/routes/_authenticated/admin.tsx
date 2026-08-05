@@ -55,7 +55,7 @@ function AdminPage() {
   const overviewFn = useServerFn(getAdminOverview);
   const logsFn = useServerFn(getSearchLogs);
 
-  const [tab, setTab] = useState<"history" | "settings" | "staff">("history");
+  const [tab, setTab] = useState<"history" | "ranking" | "settings" | "staff">("history");
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
