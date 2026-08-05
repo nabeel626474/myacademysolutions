@@ -298,7 +298,16 @@ function Index() {
   }
 
 
+  if (!authChecked || !signedIn) {
+    return (
+      <div className="grid min-h-dvh place-items-center">
+        <p className="text-sm text-muted-foreground">Checking your session…</p>
+      </div>
+    );
+  }
+
   return (
+
     <div className="min-h-dvh">
       <a href="#main" className="skip-link">
         Skip to main content
