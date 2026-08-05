@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Lock, Mail, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { checkAdminExists } from "@/lib/public.functions";
@@ -27,6 +28,16 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+async function landingRoute() {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return "/" as const;
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", data.user.id);
+  return roles?.some((r) => r.role === "admin") ? ("/admin" as const) : ("/" as const);
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -39,8 +50,8 @@ function AuthPage() {
   const [adminExists, setAdminExists] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/admin", replace: true });
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) navigate({ to: await landingRoute(), replace: true });
     });
     checkAdminExists()
       .then((r) => setAdminExists(r.adminExists))
@@ -56,7 +67,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/admin", replace: true });
+        navigate({ to: await landingRoute(), replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -79,98 +90,119 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="hero-band">
-        <div className="mx-auto flex max-w-5xl items-center gap-4 px-5 py-7">
+    <div className="auth-screen">
+      <div className="auth-grid-lines" aria-hidden="true" />
+      <div className="auth-orb auth-orb-1" aria-hidden="true" />
+      <div className="auth-orb auth-orb-2" aria-hidden="true" />
+
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
+
+      <main className="auth-card">
+        <div className="flex flex-col items-center text-center">
           <img
             src={logoUrl}
             alt="My Academy Solutions logo"
-            className="size-12 shrink-0 rounded-full bg-card p-1 shadow-md"
-            width={48}
-            height={48}
+            className="auth-logo size-16 rounded-full bg-card p-1 shadow-lg"
+            width={64}
+            height={64}
           />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] opacity-80">
-              My Academy Solutions
-            </p>
-            <h1 className="mt-1 text-xl font-bold sm:text-2xl">Staff Sign In</h1>
-          </div>
-          <div className="ml-auto self-start">
-            <ThemeToggle />
-          </div>
+          <p className="mt-4 text-[0.65rem] font-semibold uppercase tracking-[0.28em] opacity-80">
+            My Academy Solutions
+          </p>
+          <h1 className="mt-1 text-2xl font-bold">
+            {mode === "signin" ? "Welcome back" : "Create admin account"}
+          </h1>
+          <p className="mt-1.5 text-sm opacity-80">
+            {mode === "signin"
+              ? "Sign in to open your results dashboard."
+              : "This first account becomes the site administrator."}
+          </p>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-md px-5 py-10">
-        <section className="panel p-6">
-          <form onSubmit={onSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <div>
-                <label htmlFor="name" className="mb-1.5 block text-sm font-semibold">
-                  Full name
-                </label>
+        <form onSubmit={onSubmit} className="auth-stagger mt-6 space-y-3.5">
+          {mode === "signup" && (
+            <div>
+              <label htmlFor="name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
+                Full name
+              </label>
+              <div className="relative">
+                <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
                 <input
                   id="name"
-                  className="field"
+                  className="auth-field pl-10"
+                  placeholder="Your name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   maxLength={120}
                 />
               </div>
-            )}
-            <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-semibold">
-                Email
-              </label>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
+              Email
+            </label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
               <input
                 id="email"
                 type="email"
                 required
                 autoComplete="email"
-                className="field"
+                placeholder="you@academy.com"
+                className="auth-field pl-10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 maxLength={255}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-semibold">
-                Password
-              </label>
+          </div>
+
+          <div>
+            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
               <input
                 id="password"
                 type="password"
                 required
                 minLength={8}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                className="field"
+                placeholder="••••••••"
+                className="auth-field pl-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+          </div>
 
-            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            {info && <p className="text-sm font-medium text-primary">{info}</p>}
+          <div aria-live="polite" className="empty:hidden">
+            {error && <p className="text-sm font-semibold text-[oklch(0.85_0.16_25)]">{error}</p>}
+            {info && <p className="text-sm font-medium opacity-90">{info}</p>}
+          </div>
 
-            <button className="btn-primary w-full" disabled={busy}>
-              {busy ? "Please wait…" : mode === "signin" ? "Sign In" : "Create Account"}
-            </button>
-          </form>
+          <button className="auth-submit" disabled={busy}>
+            {busy ? "Please wait…" : mode === "signin" ? "Sign In" : "Create Account"}
+          </button>
+        </form>
 
-          {!adminExists && (
-            <button
-              className="btn-ghost mt-4 w-full"
-              onClick={() => {
-                setMode(mode === "signin" ? "signup" : "signin");
-                setError(null);
-                setInfo(null);
-              }}
-            >
-              {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
-            </button>
-          )}
-
-        </section>
+        {!adminExists && (
+          <button
+            className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
+            onClick={() => {
+              setMode(mode === "signin" ? "signup" : "signin");
+              setError(null);
+              setInfo(null);
+            }}
+          >
+            {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
+          </button>
+        )}
       </main>
     </div>
   );

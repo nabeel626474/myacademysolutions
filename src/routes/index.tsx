@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
@@ -76,7 +76,9 @@ function statusLabel(status: RowStatus): string {
 type Preview = { pages: string[]; blob: Blob; name: string; label: string };
 
 function Index() {
+  const navigate = useNavigate();
   const [cls, setCls] = useState<string>(CLASS_OPTIONS[0].value);
+
   const [input, setInput] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [running, setRunning] = useState(false);
@@ -91,9 +93,14 @@ function Index() {
   );
   const [signedIn, setSignedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session);
+      setAuthChecked(true);
+      if (!data.session) navigate({ to: "/auth", replace: true });
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
     );
@@ -122,7 +129,8 @@ function Index() {
         }
       });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
+
   async function downloadExcelSheet() {
     const sources = done
       .filter((r) => r.card)
@@ -290,7 +298,16 @@ function Index() {
   }
 
 
+  if (!authChecked || !signedIn) {
+    return (
+      <div className="grid min-h-dvh place-items-center">
+        <p className="text-sm text-muted-foreground">Checking your session…</p>
+      </div>
+    );
+  }
+
   return (
+
     <div className="min-h-dvh">
       <a href="#main" className="skip-link">
         Skip to main content

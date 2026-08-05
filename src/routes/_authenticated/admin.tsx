@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SchoolRanking } from "@/components/school-ranking";
+
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import {
   addStaffMember,
@@ -55,7 +57,7 @@ function AdminPage() {
   const overviewFn = useServerFn(getAdminOverview);
   const logsFn = useServerFn(getSearchLogs);
 
-  const [tab, setTab] = useState<"history" | "settings" | "staff">("history");
+  const [tab, setTab] = useState<"history" | "ranking" | "settings" | "staff">("history");
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -161,7 +163,7 @@ function AdminPage() {
 
       <main className="mx-auto max-w-6xl px-5 py-8">
         <div className="mb-5 flex flex-wrap gap-2">
-          {(["history", "settings", "staff"] as const).map((t) => (
+          {(["history", "ranking", "settings", "staff"] as const).map((t) => (
             <button
               key={t}
               className={t === tab ? "btn-primary" : "btn-ghost"}
@@ -170,9 +172,16 @@ function AdminPage() {
                 setError(null);
               }}
             >
-              {t === "history" ? "Search History" : t === "settings" ? "Site Settings" : "Staff"}
+              {t === "history"
+                ? "Search History"
+                : t === "ranking"
+                  ? "School Ranking"
+                  : t === "settings"
+                    ? "Site Settings"
+                    : "Staff"}
             </button>
           ))}
+
         </div>
 
         {error && (
@@ -244,7 +253,10 @@ function AdminPage() {
           </section>
         )}
 
+        {tab === "ranking" && <SchoolRanking />}
+
         {tab === "settings" && (
+
           <div className="space-y-6">
             <section className="panel p-6">
               <h2 className="text-sm font-semibold">Class / examination options</h2>
