@@ -4,6 +4,7 @@ import { Lock, Mail, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { checkAdminExists } from "@/lib/public.functions";
+import { enforceSessionAge, markSignIn } from "@/lib/session";
 import logoUrl from "@/assets/academy-logo.png";
 
 export const Route = createFileRoute("/auth")({
@@ -50,9 +51,11 @@ function AuthPage() {
   const [adminExists, setAdminExists] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user) navigate({ to: await landingRoute(), replace: true });
-    });
+    enforceSessionAge().then(() =>
+      supabase.auth.getUser().then(async ({ data }) => {
+        if (data.user) navigate({ to: await landingRoute(), replace: true });
+      }),
+    );
     checkAdminExists()
       .then((r) => setAdminExists(r.adminExists))
       .catch(() => setAdminExists(true));
@@ -67,6 +70,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        markSignIn();
         navigate({ to: await landingRoute(), replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
@@ -94,17 +98,19 @@ function AuthPage() {
       <div className="auth-grid-lines" aria-hidden="true" />
       <div className="auth-orb auth-orb-1" aria-hidden="true" />
       <div className="auth-orb auth-orb-2" aria-hidden="true" />
+      <div className="auth-orb auth-orb-3" aria-hidden="true" />
+      <div className="auth-beam" aria-hidden="true" />
 
       <div className="absolute right-4 top-4 z-10">
         <ThemeToggle />
       </div>
 
-      <main className="auth-card">
+      <main className="auth-card auth-card-glow">
         <div className="flex flex-col items-center text-center">
           <img
             src={logoUrl}
             alt="My Academy Solutions logo"
-            className="auth-logo size-16 rounded-full bg-card p-1 shadow-lg"
+            className="auth-logo auth-logo-float size-16 rounded-full bg-card p-1 shadow-lg"
             width={64}
             height={64}
           />
