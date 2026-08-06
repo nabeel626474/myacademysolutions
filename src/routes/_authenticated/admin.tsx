@@ -121,6 +121,7 @@ function AdminPage() {
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
+    clearSignInStamp();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
