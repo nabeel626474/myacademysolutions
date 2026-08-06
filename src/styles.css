@@ -452,6 +452,74 @@
   .auth-logo {
     animation: auth-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+  .auth-logo-float {
+    animation:
+      auth-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both,
+      auth-bob 5s ease-in-out 0.7s infinite;
+  }
+  .auth-orb-3 {
+    width: 16rem;
+    height: 16rem;
+    top: 30%;
+    right: 12%;
+    background: var(--gradient-gold);
+    opacity: 0.35;
+    animation-delay: -3s;
+    animation-duration: 18s;
+  }
+  .auth-beam {
+    position: absolute;
+    inset: -40% -10%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      oklch(1 0 0 / 0.09) 40deg,
+      transparent 90deg,
+      transparent 360deg
+    );
+    animation: auth-spin 22s linear infinite;
+    pointer-events: none;
+  }
+  .auth-card-glow::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      120deg,
+      oklch(1 0 0 / 0) 20%,
+      oklch(1 0 0 / 0.55) 50%,
+      oklch(1 0 0 / 0) 80%
+    );
+    background-size: 250% 100%;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: auth-border 6s linear infinite;
+    pointer-events: none;
+  }
+  .auth-field:focus {
+    animation: auth-focus 0.35s ease;
+  }
+
+  @keyframes auth-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes auth-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes auth-border {
+    from { background-position: 200% 0; }
+    to { background-position: -50% 0; }
+  }
+  @keyframes auth-focus {
+    from { transform: scale(0.99); }
+    to { transform: scale(1); }
+  }
 
   @keyframes auth-rise {
     from { opacity: 0; transform: translateY(14px); }
