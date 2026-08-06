@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { clearSignInStamp, enforceSessionAge, watchSessionAge } from "@/lib/session";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
@@ -96,11 +97,14 @@ function Index() {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSignedIn(!!data.session);
-      setAuthChecked(true);
-      if (!data.session) navigate({ to: "/auth", replace: true });
-    });
+    enforceSessionAge().then(() =>
+      supabase.auth.getSession().then(({ data }) => {
+        setSignedIn(!!data.session);
+        setAuthChecked(true);
+        if (!data.session) navigate({ to: "/auth", replace: true });
+      }),
+    );
+    const stopWatch = watchSessionAge(() => navigate({ to: "/auth", replace: true }));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
     );
@@ -128,7 +132,10 @@ function Index() {
           );
         }
       });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      stopWatch();
+      sub.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   async function downloadExcelSheet() {
@@ -336,6 +343,7 @@ function Index() {
                 <button
                   className="btn-ghost btn-on-hero"
                   onClick={async () => {
+                    clearSignInStamp();
                     await supabase.auth.signOut();
                     window.location.href = "/auth";
                   }}

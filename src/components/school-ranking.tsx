@@ -1,40 +1,65 @@
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { parseRollNumbers, type CardData } from "@/lib/result-utils";
 import { parseResultHtml } from "@/lib/result-parse";
-
-type SchoolStat = {
-  institution: string;
-  students: number;
-  passed: number;
-  totalMarks: number;
-  best: { rollNo: string; name: string; marks: number } | null;
-};
+import { getSchoolRanking, saveScannedResults, setScanRange } from "@/lib/ranking.functions";
 
 const RANK_CLASSES = CLASS_OPTIONS.filter((c) => c.value === "SSC-I" || c.value === "SSC-II");
 
 export function SchoolRanking() {
+  const queryClient = useQueryClient();
+  const rankingFn = useServerFn(getSchoolRanking);
+  const saveFn = useServerFn(saveScannedResults);
+  const rangeFn = useServerFn(setScanRange);
+
   const [cls, setCls] = useState<string>(RANK_CLASSES[0]?.value ?? "SSC-I");
-  const [input, setInput] = useState("");
+  const [rangeDraft, setRangeDraft] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<SchoolStat[] | null>(null);
-  const [missing, setMissing] = useState(0);
+  const [missing, setMissing] = useState<number | null>(null);
 
-  async function run() {
-    const rolls = parseRollNumbers(input, 300);
+  const ranking = useQuery({
+    queryKey: ["school-ranking", cls],
+    queryFn: () => rankingFn({ data: { classValue: cls } }),
+  });
+
+  const savedRange = ranking.data?.range ?? "";
+  const range = rangeDraft ?? savedRange;
+
+  const rangeMutation = useMutation({
+    mutationFn: (value: string) => rangeFn({ data: { classValue: cls, range: value } }),
+    onSuccess: () => {
+      setRangeDraft(null);
+      queryClient.invalidateQueries({ queryKey: ["school-ranking"] });
+    },
+    onError: (e: unknown) => setError((e as Error).message),
+  });
+
+  /** Refreshes the stored results from the portal using the saved roll-number range. */
+  async function refresh() {
+    const rolls = parseRollNumbers(range, 300);
     if (rolls.length === 0) {
-      setError("Please enter at least one valid roll number (example: 123456 or 100100-100120).");
+      setError(
+        "Add the roll-number range for this examination first (example: 100100-100200), then refresh.",
+      );
       return;
     }
     setError(null);
     setBusy(true);
-    setStats(null);
-    setMissing(0);
+    setMissing(null);
     setProgress({ done: 0, total: rolls.length });
 
-    const map = new Map<string, SchoolStat>();
+    const rows: {
+      rollNo: string;
+      institution: string;
+      studentName: string | null;
+      obtained: number | null;
+      status: string | null;
+      grade: string | null;
+    }[] = [];
     let notFound = 0;
     let done = 0;
 
@@ -51,18 +76,14 @@ export function SchoolRanking() {
             notFound++;
           } else {
             const parsed = parseResultHtml(rollNo, data.html);
-            const school = parsed.institution || "Unknown institution";
-            const entry =
-              map.get(school) ??
-              { institution: school, students: 0, passed: 0, totalMarks: 0, best: null };
-            entry.students++;
-            if (parsed.status !== "Fail") entry.passed++;
-            const marks = parsed.obtained ?? 0;
-            entry.totalMarks += marks;
-            if (!entry.best || marks > entry.best.marks) {
-              entry.best = { rollNo, name: parsed.studentName || rollNo, marks };
-            }
-            map.set(school, entry);
+            rows.push({
+              rollNo,
+              institution: parsed.institution || "Unknown institution",
+              studentName: parsed.studentName || null,
+              obtained: parsed.obtained,
+              status: parsed.status || null,
+              grade: parsed.grade || null,
+            });
           }
         } catch {
           notFound++;
@@ -77,27 +98,33 @@ export function SchoolRanking() {
     rolls.forEach((r, i) => queues[i % lanes].push(r));
     await Promise.all(queues.map(worker));
 
-    const ranked = Array.from(map.values()).sort(
-      (a, b) => b.totalMarks / b.students - a.totalMarks / a.students,
-    );
-    setStats(ranked);
+    try {
+      for (let i = 0; i < rows.length; i += 200) {
+        await saveFn({ data: { classValue: cls, rows: rows.slice(i, i + 200) } });
+      }
+      await queryClient.invalidateQueries({ queryKey: ["school-ranking"] });
+    } catch (e) {
+      setError((e as Error).message);
+    }
+
     setMissing(notFound);
     setBusy(false);
     setProgress(null);
   }
 
   function exportCsv() {
-    if (!stats) return;
+    const schools = ranking.data?.schools;
+    if (!schools?.length) return;
     const lines = [
       "Rank,School,Students,Passed,Pass %,Average Marks,Top Student,Top Marks",
-      ...stats.map((s, i) =>
+      ...schools.map((s, i) =>
         [
           i + 1,
           `"${s.institution.replace(/"/g, "'")}"`,
           s.students,
           s.passed,
           ((s.passed / s.students) * 100).toFixed(1),
-          (s.totalMarks / s.students).toFixed(1),
+          s.averageMarks.toFixed(1),
           `"${(s.best?.name ?? "").replace(/"/g, "'")}"`,
           s.best?.marks ?? "",
         ].join(","),
@@ -112,14 +139,17 @@ export function SchoolRanking() {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
+  const schools = ranking.data?.schools ?? [];
+
   return (
     <div className="space-y-6">
       <section className="panel p-5 sm:p-6">
-        <h2 className="text-sm font-semibold">School ranking — compare results</h2>
+        <h2 className="text-sm font-semibold">School ranking</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Enter the roll numbers (or ranges) of the candidates you want to compare. Every result is
-          grouped by its institution and ranked by average marks obtained.
+          Schools are ranked automatically from the results already collected — no roll numbers
+          needed. Use refresh to pull the latest results for the saved range.
         </p>
+
         <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,240px)_1fr]">
           <div>
             <label htmlFor="rank-cls" className="mb-1.5 block text-sm font-semibold">
@@ -129,7 +159,12 @@ export function SchoolRanking() {
               id="rank-cls"
               className="field"
               value={cls}
-              onChange={(e) => setCls(e.target.value)}
+              onChange={(e) => {
+                setCls(e.target.value);
+                setRangeDraft(null);
+                setMissing(null);
+                setError(null);
+              }}
             >
               {RANK_CLASSES.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -139,17 +174,26 @@ export function SchoolRanking() {
             </select>
           </div>
           <div>
-            <label htmlFor="rank-rolls" className="mb-1.5 block text-sm font-semibold">
-              Roll numbers
+            <label htmlFor="rank-range" className="mb-1.5 block text-sm font-semibold">
+              Roll-number range to scan (saved once)
             </label>
-            <textarea
-              id="rank-rolls"
-              className="field min-h-24 font-mono"
-              placeholder={"100100-100200\n123456, 123457"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              maxLength={6000}
-            />
+            <div className="flex flex-wrap gap-2">
+              <input
+                id="rank-range"
+                className="field flex-1 font-mono"
+                placeholder="100100-100200"
+                value={range}
+                onChange={(e) => setRangeDraft(e.target.value)}
+                maxLength={2000}
+              />
+              <button
+                className="btn-ghost"
+                onClick={() => rangeMutation.mutate(range)}
+                disabled={rangeMutation.isPending || range === savedRange}
+              >
+                Save range
+              </button>
+            </div>
           </div>
         </div>
 
@@ -160,24 +204,37 @@ export function SchoolRanking() {
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button className="btn-primary" onClick={run} disabled={busy}>
-            {busy ? `Comparing… ${progress?.done ?? 0}/${progress?.total ?? 0}` : "Build ranking"}
+          <button className="btn-primary" onClick={refresh} disabled={busy}>
+            {busy
+              ? `Refreshing… ${progress?.done ?? 0}/${progress?.total ?? 0}`
+              : "Refresh from portal"}
           </button>
-          {stats && stats.length > 0 && (
+          {schools.length > 0 && (
             <button className="btn-ghost" onClick={exportCsv}>
               Export CSV
             </button>
           )}
-          {stats && (
-            <span className="text-xs text-muted-foreground">
-              {stats.length} school{stats.length === 1 ? "" : "s"} · {missing} roll number
-              {missing === 1 ? "" : "s"} not found
-            </span>
-          )}
+          <span className="text-xs text-muted-foreground" aria-live="polite">
+            {ranking.isLoading
+              ? "Loading ranking…"
+              : `${schools.length} school${schools.length === 1 ? "" : "s"} · ${ranking.data?.totalStudents ?? 0} students${
+                  ranking.data?.updatedAt
+                    ? ` · updated ${new Date(ranking.data.updatedAt).toLocaleString()}`
+                    : ""
+                }`}
+            {missing !== null && ` · ${missing} roll number${missing === 1 ? "" : "s"} not found`}
+          </span>
         </div>
       </section>
 
-      {stats && stats.length > 0 && (
+      {!ranking.isLoading && schools.length === 0 && (
+        <section className="panel p-5 text-sm text-muted-foreground">
+          No results stored for this examination yet. Save a roll-number range above and press
+          “Refresh from portal” once — after that the ranking loads by itself.
+        </section>
+      )}
+
+      {schools.length > 0 && (
         <section className="panel overflow-hidden">
           <div className="border-b border-border px-5 py-3">
             <h2 className="text-sm font-semibold">Ranking</h2>
@@ -195,7 +252,7 @@ export function SchoolRanking() {
                 </tr>
               </thead>
               <tbody>
-                {stats.map((s, i) => (
+                {schools.map((s, i) => (
                   <tr
                     key={s.institution}
                     className="animate-fade-in border-t border-border"
@@ -205,9 +262,7 @@ export function SchoolRanking() {
                     <td className="px-4 py-2">{s.institution}</td>
                     <td className="px-4 py-2">{s.students}</td>
                     <td className="px-4 py-2">{((s.passed / s.students) * 100).toFixed(1)}%</td>
-                    <td className="px-4 py-2 font-semibold">
-                      {(s.totalMarks / s.students).toFixed(1)}
-                    </td>
+                    <td className="px-4 py-2 font-semibold">{s.averageMarks.toFixed(1)}</td>
                     <td className="px-4 py-2 text-muted-foreground">
                       {s.best ? `${s.best.name} (${s.best.marks})` : "—"}
                     </td>

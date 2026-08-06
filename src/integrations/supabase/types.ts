@@ -56,6 +56,42 @@ export type Database = {
         }
         Relationships: []
       }
+      school_results: {
+        Row: {
+          class_value: string
+          grade: string | null
+          id: string
+          institution: string
+          obtained: number | null
+          roll_no: string
+          status: string | null
+          student_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          class_value: string
+          grade?: string | null
+          id?: string
+          institution?: string
+          obtained?: number | null
+          roll_no: string
+          status?: string | null
+          student_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          class_value?: string
+          grade?: string | null
+          id?: string
+          institution?: string
+          obtained?: number | null
+          roll_no?: string
+          status?: string | null
+          student_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       search_logs: {
         Row: {
           class_value: string
