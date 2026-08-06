@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { clearSignInStamp, enforceSessionAge, watchSessionAge } from "@/lib/session";
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
