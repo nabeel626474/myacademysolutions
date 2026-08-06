@@ -343,6 +343,7 @@ function Index() {
                 <button
                   className="btn-ghost btn-on-hero"
                   onClick={async () => {
+                    clearSignInStamp();
                     await supabase.auth.signOut();
                     window.location.href = "/auth";
                   }}
