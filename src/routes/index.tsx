@@ -131,7 +131,10 @@ function Index() {
           );
         }
       });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      stopWatch();
+      sub.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   async function downloadExcelSheet() {
