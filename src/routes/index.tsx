@@ -96,11 +96,14 @@ function Index() {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSignedIn(!!data.session);
-      setAuthChecked(true);
-      if (!data.session) navigate({ to: "/auth", replace: true });
-    });
+    enforceSessionAge().then(() =>
+      supabase.auth.getSession().then(({ data }) => {
+        setSignedIn(!!data.session);
+        setAuthChecked(true);
+        if (!data.session) navigate({ to: "/auth", replace: true });
+      }),
+    );
+    const stopWatch = watchSessionAge(() => navigate({ to: "/auth", replace: true }));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
     );
