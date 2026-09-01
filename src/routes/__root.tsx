@@ -12,6 +12,22 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+const ADSENSE_SRC =
+  "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5915237360604429";
+
+/** Injects the AdSense script after hydration (SSR-injected it breaks hydration). */
+function AdSenseLoader() {
+  useEffect(() => {
+    if (document.querySelector(`script[src^="https://pagead2.googlesyndication.com"]`)) return;
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = ADSENSE_SRC;
+    s.crossOrigin = "anonymous";
+    document.head.appendChild(s);
+  }, []);
+  return null;
+}
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
