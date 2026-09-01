@@ -12,6 +12,22 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+const ADSENSE_SRC =
+  "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5915237360604429";
+
+/** Injects the AdSense script after hydration (SSR-injected it breaks hydration). */
+function AdSenseLoader() {
+  useEffect(() => {
+    if (document.querySelector(`script[src^="https://pagead2.googlesyndication.com"]`)) return;
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = ADSENSE_SRC;
+    s.crossOrigin = "anonymous";
+    document.head.appendChild(s);
+  }, []);
+  return null;
+}
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -97,13 +113,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
-    scripts: [
-      {
-        async: true,
-        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5915237360604429",
-        crossOrigin: "anonymous",
-      },
-    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -137,6 +146,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <AdSenseLoader />
       <Outlet />
     </QueryClientProvider>
   );
