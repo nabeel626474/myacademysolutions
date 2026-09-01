@@ -218,9 +218,28 @@ function AuthPage() {
           </div>
 
           <button className="auth-submit" disabled={busy}>
-            {busy ? "Please wait…" : mode === "signin" ? "Sign In" : "Create Account"}
+            {busy
+              ? "Please wait…"
+              : mode === "signin"
+                ? "Sign In"
+                : mode === "forgot"
+                  ? "Send Reset Link"
+                  : "Create Account"}
           </button>
         </form>
+
+        {mode === "forgot" && (
+          <button
+            className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
+            onClick={() => {
+              setMode("signin");
+              setError(null);
+              setInfo(null);
+            }}
+          >
+            Back to sign in
+          </button>
+        )}
 
         {!adminExists && (
           <button
