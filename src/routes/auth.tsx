@@ -175,25 +175,42 @@ function AuthPage() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                placeholder="••••••••"
-                className="auth-field pl-10"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+          {mode !== "forgot" && (
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wide opacity-80">
+                  Password
+                </label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    className="text-xs font-semibold underline underline-offset-2 opacity-70 transition hover:opacity-100"
+                    onClick={() => {
+                      setMode("forgot");
+                      setError(null);
+                      setInfo(null);
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  placeholder="••••••••"
+                  className="auth-field pl-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div aria-live="polite" className="empty:hidden">
             {error && <p className="text-sm font-semibold text-[oklch(0.85_0.16_25)]">{error}</p>}
