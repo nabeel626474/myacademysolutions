@@ -124,12 +124,14 @@ function AuthPage() {
             My Academy Solutions
           </p>
           <h1 className="mt-1 text-2xl font-bold">
-            {mode === "signin" ? "Welcome back" : "Create admin account"}
+            {mode === "signin" ? "Welcome back" : mode === "forgot" ? "Reset password" : "Create admin account"}
           </h1>
           <p className="mt-1.5 text-sm opacity-80">
             {mode === "signin"
               ? "Sign in to open your results dashboard."
-              : "This first account becomes the site administrator."}
+              : mode === "forgot"
+                ? "Enter your email and we'll send you a reset link."
+                : "This first account becomes the site administrator."}
           </p>
         </div>
 
