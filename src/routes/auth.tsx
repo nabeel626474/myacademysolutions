@@ -41,7 +41,7 @@ async function landingRoute() {
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -67,7 +67,13 @@ function AuthPage() {
     setError(null);
     setInfo(null);
     try {
-      if (mode === "signin") {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("Password reset email sent — open the link in it to set a new password.");
+      } else if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         markSignIn();
@@ -118,12 +124,14 @@ function AuthPage() {
             My Academy Solutions
           </p>
           <h1 className="mt-1 text-2xl font-bold">
-            {mode === "signin" ? "Welcome back" : "Create admin account"}
+            {mode === "signin" ? "Welcome back" : mode === "forgot" ? "Reset password" : "Create admin account"}
           </h1>
           <p className="mt-1.5 text-sm opacity-80">
             {mode === "signin"
               ? "Sign in to open your results dashboard."
-              : "This first account becomes the site administrator."}
+              : mode === "forgot"
+                ? "Enter your email and we'll send you a reset link."
+                : "This first account becomes the site administrator."}
           </p>
         </div>
 
@@ -167,25 +175,42 @@ function AuthPage() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                placeholder="••••••••"
-                className="auth-field pl-10"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+          {mode !== "forgot" && (
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wide opacity-80">
+                  Password
+                </label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    className="text-xs font-semibold underline underline-offset-2 opacity-70 transition hover:opacity-100"
+                    onClick={() => {
+                      setMode("forgot");
+                      setError(null);
+                      setInfo(null);
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  placeholder="••••••••"
+                  className="auth-field pl-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div aria-live="polite" className="empty:hidden">
             {error && <p className="text-sm font-semibold text-[oklch(0.85_0.16_25)]">{error}</p>}
@@ -193,9 +218,28 @@ function AuthPage() {
           </div>
 
           <button className="auth-submit" disabled={busy}>
-            {busy ? "Please wait…" : mode === "signin" ? "Sign In" : "Create Account"}
+            {busy
+              ? "Please wait…"
+              : mode === "signin"
+                ? "Sign In"
+                : mode === "forgot"
+                  ? "Send Reset Link"
+                  : "Create Account"}
           </button>
         </form>
+
+        {mode === "forgot" && (
+          <button
+            className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
+            onClick={() => {
+              setMode("signin");
+              setError(null);
+              setInfo(null);
+            }}
+          >
+            Back to sign in
+          </button>
+        )}
 
         {!adminExists && (
           <button
