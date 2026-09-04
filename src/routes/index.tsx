@@ -95,17 +95,25 @@ function Index() {
     CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
   );
   const [signedIn, setSignedIn] = useState(false);
+  const [pinUnlocked, setPinUnlocked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     enforceSessionAge().then(() =>
-      supabase.auth.getSession().then(({ data }) => {
+      supabase.auth.getSession().then(async ({ data }) => {
         setSignedIn(!!data.session);
+        if (data.session) {
+          setAuthChecked(true);
+          return;
+        }
+        const { unlocked } = await getPinStatus().catch(() => ({ unlocked: false }));
+        setPinUnlocked(unlocked);
         setAuthChecked(true);
-        if (!data.session) navigate({ to: "/auth", replace: true });
+        if (!unlocked) navigate({ to: "/auth", replace: true });
       }),
     );
+
     const stopWatch = watchSessionAge(() => navigate({ to: "/auth", replace: true }));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
