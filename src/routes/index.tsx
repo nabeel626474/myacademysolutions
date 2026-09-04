@@ -4,6 +4,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearSignInStamp, enforceSessionAge, watchSessionAge } from "@/lib/session";
+import { getPinStatus, lockPin } from "@/lib/pin.functions";
+
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
 import logoUrl from "@/assets/academy-logo.png";
@@ -93,17 +95,25 @@ function Index() {
     CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
   );
   const [signedIn, setSignedIn] = useState(false);
+  const [pinUnlocked, setPinUnlocked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     enforceSessionAge().then(() =>
-      supabase.auth.getSession().then(({ data }) => {
+      supabase.auth.getSession().then(async ({ data }) => {
         setSignedIn(!!data.session);
+        if (data.session) {
+          setAuthChecked(true);
+          return;
+        }
+        const { unlocked } = await getPinStatus().catch(() => ({ unlocked: false }));
+        setPinUnlocked(unlocked);
         setAuthChecked(true);
-        if (!data.session) navigate({ to: "/auth", replace: true });
+        if (!unlocked) navigate({ to: "/auth", replace: true });
       }),
     );
+
     const stopWatch = watchSessionAge(() => navigate({ to: "/auth", replace: true }));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
       setSignedIn(!!session),
@@ -305,7 +315,7 @@ function Index() {
   }
 
 
-  if (!authChecked || !signedIn) {
+  if (!authChecked || (!signedIn && !pinUnlocked)) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <p className="text-sm text-muted-foreground">Checking your session…</p>
@@ -339,16 +349,17 @@ function Index() {
                   Dashboard
                 </Link>
               )}
-              {signedIn ? (
+              {signedIn || pinUnlocked ? (
                 <button
                   className="btn-ghost btn-on-hero"
                   onClick={async () => {
                     clearSignInStamp();
+                    await lockPin().catch(() => undefined);
                     await supabase.auth.signOut();
                     window.location.href = "/auth";
                   }}
                 >
-                  Sign out
+                  {signedIn ? "Sign out" : "Lock"}
                 </button>
               ) : (
                 <Link to="/auth" className="btn-ghost btn-on-hero">
@@ -356,6 +367,7 @@ function Index() {
                   <span className="hidden sm:inline">Staff sign in</span>
                 </Link>
               )}
+
             </nav>
           </div>
 
