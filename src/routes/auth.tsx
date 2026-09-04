@@ -41,6 +41,10 @@ async function landingRoute() {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const [gate, setGate] = useState<"pin" | "email">("pin");
+  const [pin, setPin] = useState("");
+  const [pinBusy, setPinBusy] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,6 +64,22 @@ function AuthPage() {
       .then((r) => setAdminExists(r.adminExists))
       .catch(() => setAdminExists(true));
   }, [navigate]);
+
+  async function onPinSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPinBusy(true);
+    setPinError(null);
+    try {
+      const { ok } = await unlockWithPin({ data: { pin } });
+      if (ok) navigate({ to: "/", replace: true });
+      else setPinError("Incorrect PIN. Please try again.");
+    } catch {
+      setPinError("Could not verify the PIN. Please try again.");
+    } finally {
+      setPinBusy(false);
+    }
+  }
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
