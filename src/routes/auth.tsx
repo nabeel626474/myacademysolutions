@@ -275,7 +275,21 @@ function AuthPage() {
             {mode === "signin" ? "Create the first admin account" : "Back to sign in"}
           </button>
         )}
+
+        <button
+          className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
+          onClick={() => {
+            setGate("pin");
+            setError(null);
+            setInfo(null);
+          }}
+        >
+          Back to PIN entry
+        </button>
+        </>
+        )}
       </main>
+
     </div>
   );
 }
