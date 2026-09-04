@@ -349,16 +349,17 @@ function Index() {
                   Dashboard
                 </Link>
               )}
-              {signedIn ? (
+              {signedIn || pinUnlocked ? (
                 <button
                   className="btn-ghost btn-on-hero"
                   onClick={async () => {
                     clearSignInStamp();
+                    await lockPin().catch(() => undefined);
                     await supabase.auth.signOut();
                     window.location.href = "/auth";
                   }}
                 >
-                  Sign out
+                  {signedIn ? "Sign out" : "Lock"}
                 </button>
               ) : (
                 <Link to="/auth" className="btn-ghost btn-on-hero">
@@ -366,6 +367,7 @@ function Index() {
                   <span className="hidden sm:inline">Staff sign in</span>
                 </Link>
               )}
+
             </nav>
           </div>
 
