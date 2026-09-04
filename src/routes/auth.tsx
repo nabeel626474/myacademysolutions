@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { checkAdminExists } from "@/lib/public.functions";
 import { enforceSessionAge, markSignIn } from "@/lib/session";
+import { unlockWithPin } from "@/lib/pin.functions";
+
 import logoUrl from "@/assets/academy-logo.png";
 
 export const Route = createFileRoute("/auth")({
