@@ -146,18 +146,73 @@ function AuthPage() {
             My Academy Solutions
           </p>
           <h1 className="mt-1 text-2xl font-bold">
-            {mode === "signin" ? "Welcome back" : mode === "forgot" ? "Reset password" : "Create admin account"}
+            {gate === "pin"
+              ? "Enter access PIN"
+              : mode === "signin"
+                ? "Welcome back"
+                : mode === "forgot"
+                  ? "Reset password"
+                  : "Create admin account"}
           </h1>
           <p className="mt-1.5 text-sm opacity-80">
-            {mode === "signin"
-              ? "Sign in to open your results dashboard."
-              : mode === "forgot"
-                ? "Enter your email and we'll send you a reset link."
-                : "This first account becomes the site administrator."}
+            {gate === "pin"
+              ? "Type the PIN to open the results tool."
+              : mode === "signin"
+                ? "Sign in to open your results dashboard."
+                : mode === "forgot"
+                  ? "Enter your email and we'll send you a reset link."
+                  : "This first account becomes the site administrator."}
           </p>
         </div>
 
+        {gate === "pin" ? (
+          <>
+            <form onSubmit={onPinSubmit} className="auth-stagger mt-6 space-y-3.5">
+              <div>
+                <label htmlFor="pin" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
+                  Access PIN
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-70" aria-hidden="true" />
+                  <input
+                    id="pin"
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    required
+                    placeholder="••••"
+                    className="auth-field pl-10 text-center tracking-[0.5em]"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  />
+                </div>
+              </div>
+
+              <div aria-live="polite" className="empty:hidden">
+                {pinError && (
+                  <p className="text-sm font-semibold text-[oklch(0.85_0.16_25)]">{pinError}</p>
+                )}
+              </div>
+
+              <button className="auth-submit" disabled={pinBusy || pin.length < 4}>
+                {pinBusy ? "Checking…" : "Unlock"}
+              </button>
+            </form>
+
+            <button
+              className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
+              onClick={() => {
+                setGate("email");
+                setPinError(null);
+              }}
+            >
+              Staff email sign in
+            </button>
+          </>
+        ) : (
+        <>
         <form onSubmit={onSubmit} className="auth-stagger mt-6 space-y-3.5">
+
           {mode === "signup" && (
             <div>
               <label htmlFor="name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide opacity-80">
