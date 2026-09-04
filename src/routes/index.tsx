@@ -315,7 +315,7 @@ function Index() {
   }
 
 
-  if (!authChecked || !signedIn) {
+  if (!authChecked || (!signedIn && !pinUnlocked)) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <p className="text-sm text-muted-foreground">Checking your session…</p>
