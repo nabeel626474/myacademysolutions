@@ -5,6 +5,8 @@ import { Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearSignInStamp, enforceSessionAge, watchSessionAge } from "@/lib/session";
 import { getPinStatus, lockPin } from "@/lib/pin.functions";
+import { ResultCountdown, useResultPending } from "@/components/result-countdown";
+
 
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
