@@ -87,3 +87,15 @@ export const deleteStaffMember = createServerFn({ method: "POST" })
     if (data.userId === context.userId) throw new Error("You cannot delete your own account.");
     return admin.removeStaffUser(data.userId);
   });
+
+export const setSitePin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { pin: string }) =>
+    z.object({ pin: z.string().trim().regex(/^\d{4,8}$/, "PIN must be 4 to 8 digits.") }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await import("@/lib/admin.server");
+    await admin.assertAdmin(context.supabase, context.userId);
+    const { hashPin, PIN_SETTING_KEY } = await import("@/lib/pin.server");
+    return admin.saveSetting(PIN_SETTING_KEY, hashPin(data.pin), context.userId);
+  });

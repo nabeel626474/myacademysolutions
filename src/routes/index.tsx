@@ -5,6 +5,8 @@ import { Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearSignInStamp, enforceSessionAge, watchSessionAge } from "@/lib/session";
 import { getPinStatus, lockPin } from "@/lib/pin.functions";
+import { ResultCountdown, useResultPending } from "@/components/result-countdown";
+
 
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
@@ -98,6 +100,8 @@ function Index() {
   const [pinUnlocked, setPinUnlocked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const { pending: resultPending, remaining } = useResultPending(cls);
+
 
   useEffect(() => {
     enforceSessionAge().then(() =>
@@ -441,15 +445,22 @@ function Index() {
             )}
           </p>
 
+          {resultPending && <ResultCountdown remaining={remaining} />}
+
           <div className="mt-5">
             <button
               className="btn-primary w-full sm:w-auto"
               onClick={handleRun}
-              disabled={running}
+              disabled={running || resultPending}
             >
-              {running ? "Fetching results…" : "Get Results"}
+              {resultPending
+                ? "Result not announced yet"
+                : running
+                  ? "Fetching results…"
+                  : "Get Results"}
             </button>
           </div>
+
         </section>
 
         <section className="panel mt-6 p-5 sm:p-6" aria-labelledby="step-2">
