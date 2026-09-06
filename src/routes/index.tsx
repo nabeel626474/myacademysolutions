@@ -100,6 +100,8 @@ function Index() {
   const [pinUnlocked, setPinUnlocked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const { pending: resultPending, remaining } = useResultPending(cls);
+
 
   useEffect(() => {
     enforceSessionAge().then(() =>
