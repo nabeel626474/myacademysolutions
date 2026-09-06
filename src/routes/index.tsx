@@ -441,15 +441,22 @@ function Index() {
             )}
           </p>
 
+          {resultPending && <ResultCountdown remaining={remaining} />}
+
           <div className="mt-5">
             <button
               className="btn-primary w-full sm:w-auto"
               onClick={handleRun}
-              disabled={running}
+              disabled={running || resultPending}
             >
-              {running ? "Fetching results…" : "Get Results"}
+              {resultPending
+                ? "Result not announced yet"
+                : running
+                  ? "Fetching results…"
+                  : "Get Results"}
             </button>
           </div>
+
         </section>
 
         <section className="panel mt-6 p-5 sm:p-6" aria-labelledby="step-2">
