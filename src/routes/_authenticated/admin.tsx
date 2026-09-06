@@ -106,7 +106,20 @@ function AdminPage() {
     onError,
   });
 
+  const pinFn = useServerFn(setSitePin);
+  const [pinValue, setPinValue] = useState("");
+  const [pinSaved, setPinSaved] = useState(false);
+  const pinMutation = useMutation({
+    mutationFn: (pin: string) => pinFn({ data: { pin } }),
+    onSuccess: () => {
+      setPinValue("");
+      setPinSaved(true);
+    },
+    onError,
+  });
+
   const [classText, setClassText] = useState<string | null>(null);
+
   const [newStaff, setNewStaff] = useState({
     email: "",
     password: "",
