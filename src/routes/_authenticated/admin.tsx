@@ -299,7 +299,38 @@ function AdminPage() {
                 </button>
               </div>
             </section>
+
+            <section className="panel p-6">
+              <h2 className="text-sm font-semibold">Access PIN</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Visitors type this PIN on the sign-in screen to open the results tool. 4 to 8
+                digits.
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <input
+                  className="field max-w-48 font-mono tracking-[0.3em]"
+                  inputMode="numeric"
+                  placeholder="New PIN"
+                  value={pinValue}
+                  onChange={(e) => {
+                    setPinValue(e.target.value.replace(/\D/g, "").slice(0, 8));
+                    setPinSaved(false);
+                  }}
+                />
+                <button
+                  className="btn-primary"
+                  disabled={pinMutation.isPending || pinValue.length < 4}
+                  onClick={() => pinMutation.mutate(pinValue)}
+                >
+                  {pinMutation.isPending ? "Saving…" : "Change PIN"}
+                </button>
+                {pinSaved && (
+                  <span className="text-sm font-medium text-primary">PIN updated.</span>
+                )}
+              </div>
+            </section>
           </div>
+
         )}
 
         {tab === "staff" && (
