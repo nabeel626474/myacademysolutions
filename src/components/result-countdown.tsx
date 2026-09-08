@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 
-/** HSSC 2026 1st Annual result announcement: 10 Sept 2026, 11:15 AM Pakistan time. */
-export const HSSC_2026_RELEASE_MS = Date.parse("2026-09-10T11:15:00+05:00");
+/** HSSC 2026 1st Annual result announcement: 9 Sept 2026, 11:30 AM Pakistan time. */
+export const HSSC_2026_RELEASE_MS = Date.parse("2026-09-09T11:30:00+05:00");
 const WAITING_CLASSES = ["HSSC-I", "HSSC-II"];
 
 export function isWaitingClass(value: string) {
@@ -52,7 +52,7 @@ export function ResultCountdown({ remaining }: { remaining: number }) {
       </div>
       <h3 className="mt-3 text-base font-bold sm:text-lg">HSSC 2026 (1st Annual) result is not out yet</h3>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        The official announcement is on 10 September 2026 at 11:15 AM (Pakistan time). Result cards
+        The official announcement is on 9 September 2026 at 11:30 AM (Pakistan time). Result cards
         and Excel sheets will start working right after that.
       </p>
 
