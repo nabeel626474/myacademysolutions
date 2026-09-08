@@ -348,11 +348,15 @@ function Index() {
             </p>
             <nav aria-label="Account" className="flex items-center gap-2">
               <ThemeToggle />
-              {isAdmin && (
+              {isAdmin ? (
                 <Link to="/admin" className="btn-ghost btn-on-hero">
                   Dashboard
                 </Link>
-              )}
+              ) : pinUnlocked ? (
+                <Link to="/auth" className="btn-ghost btn-on-hero">
+                  Staff Sign In
+                </Link>
+              ) : null}
               {signedIn || pinUnlocked ? (
                 <button
                   className="btn-ghost btn-on-hero"
