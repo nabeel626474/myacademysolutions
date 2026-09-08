@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { clearSignInStamp, enforceSessionAge, watchSessionAge } from "@/lib/session";
 import { getPinStatus, lockPin } from "@/lib/pin.functions";
 import { ResultCountdown, useResultPending } from "@/components/result-countdown";
-
+import { WelcomeModal } from "@/components/welcome-modal";
 
 import { CLASS_OPTIONS } from "@/lib/fbise-shared";
 import { downloadBlob, parseRollNumbers, type CardData } from "@/lib/result-utils";
@@ -330,6 +330,7 @@ function Index() {
   return (
 
     <div className="min-h-dvh">
+      <WelcomeModal />
       <a href="#main" className="skip-link">
         Skip to main content
       </a>

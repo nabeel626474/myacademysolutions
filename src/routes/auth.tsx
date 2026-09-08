@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { checkAdminExists } from "@/lib/public.functions";
 import { enforceSessionAge, markSignIn } from "@/lib/session";
 import { unlockWithPin } from "@/lib/pin.functions";
+import { markWelcomeToShow } from "@/components/welcome-modal";
 
 import logoUrl from "@/assets/academy-logo.png";
 
@@ -73,8 +74,10 @@ function AuthPage() {
     setPinError(null);
     try {
       const { ok } = await unlockWithPin({ data: { pin } });
-      if (ok) navigate({ to: "/", replace: true });
-      else setPinError("Incorrect PIN. Please try again.");
+      if (ok) {
+        markWelcomeToShow();
+        navigate({ to: "/", replace: true });
+      } else setPinError("Incorrect PIN. Please try again.");
     } catch {
       setPinError("Could not verify the PIN. Please try again.");
     } finally {
@@ -99,6 +102,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         markSignIn();
+        markWelcomeToShow();
         navigate({ to: await landingRoute(), replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
