@@ -24,7 +24,9 @@ import logoUrl from "@/assets/academy-logo.png";
  */
 async function loadChunk<T>(load: () => Promise<T>): Promise<T> {
   try {
-    return await load();
+    const mod = await load();
+    if (typeof window !== "undefined") sessionStorage.removeItem("mas-chunk-reload");
+    return mod;
   } catch {
     try {
       return await load();
