@@ -1,4 +1,4 @@
-import { RESULT_BASE } from "./fbise-shared";
+import { GAZETTE_BASE, GAZETTE_FOLDERS, RESULT_BASE } from "./fbise-shared";
 
 export type CardResult =
   | {
