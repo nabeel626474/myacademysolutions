@@ -67,18 +67,29 @@ export function parseResultHtml(rollNo: string, html: string): ParsedResult {
     subjects.push({ subject, marks, practical });
   }
 
-  const obtainedText = field(text, /Marks\s*Obt\s*:?\s*([^:]{0,60})/i);
+  // Old portal card: "Marks Obt: 456 PASS ... placed in A"
+  // New gazette page: "Result PASS WITH 456 MARKS"
+  const obtainedText =
+    field(text, /Marks\s*Obt\s*:?\s*([^:]{0,60})/i) ||
+    field(text, /Result\s*:?\s*((?:PASS|FAIL)[^:]{0,60})/i);
   const obtained = num(obtainedText);
   const status = /fail/i.test(obtainedText) ? "Fail" : /pass/i.test(obtainedText) ? "Pass" : "";
   const grade = field(text, /placed\s+in\s+([A-Z+]{1,3})\b/i);
 
   return {
     rollNo,
-    studentName: field(text, /Student\s*Name\s*:?\s*([^:]{2,80}?)\s*Father/i),
-    fatherName: field(text, /Father\s*Name\s*:?\s*([^:]{2,80}?)\s*Marks\s*Obt/i),
+    studentName:
+      field(text, /Student\s*Name\s*:?\s*([^:]{2,80}?)\s*Father/i) ||
+      field(text, /Candidate'?s?\s*Name\s*:?\s*([^:]{2,80}?)\s*Father/i),
+    fatherName:
+      field(text, /Father\s*Name\s*:?\s*([^:]{2,80}?)\s*Marks\s*Obt/i) ||
+      field(text, /Father'?s?\s*Name\s*:?\s*([^:]{2,80}?)\s*(?:Institute|Institution)/i),
     group: field(text, /Group\/?Trade\s*:?\s*([^:]{2,40}?)\s*Student/i),
-    institution: field(text, /INSTITUTION\s*:?\s*([^:]{2,120}?)\s*(THEORY|PRACTICAL|S\.#|$)/i),
-    regNo: field(text, /REG\s*:?\s*(\d{4,})/i),
+    institution:
+      field(text, /INSTITUTION\s*:?\s*([^:]{2,120}?)\s*(THEORY|PRACTICAL|S\.#|$)/i) ||
+      field(text, /Institute\s*:?\s*([^:]{2,120}?)\s*(?:Result|Remarks|S\.\s*#|$)/i),
+    regNo:
+      field(text, /REG\s*:?\s*(\d{4,})/i) || field(text, /Registration\s*No\.?\s*:?\s*(\d{4,})/i),
     subjects,
     obtained,
     status,

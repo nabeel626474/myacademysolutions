@@ -1,5 +1,12 @@
 const PORTAL_ORIGIN = "https://portal.fbise.edu.pk";
 export const RESULT_BASE = `${PORTAL_ORIGIN}/fbise-conduct/result/`;
+/** New FBISE gazette host (static result pages, 2026 onwards). */
+export const GAZETTE_BASE = "https://result.fbise.edu.pk/";
+/** Class value -> gazette folder on the new host. */
+export const GAZETTE_FOLDERS: Record<string, string> = {
+  "HSSC-I": "HSSC1A26",
+  "HSSC-II": "HSSC1A26",
+};
 
 export const CLASS_OPTIONS = [
   { value: "SSC-I", label: "SSC-I (2026) 1st Annual" },
@@ -27,7 +34,10 @@ export const CLASS_VALUES = CLASS_OPTIONS.map((c) => c.value) as readonly string
 export function isAllowedAsset(url: string) {
   try {
     const u = new URL(url);
-    return u.protocol === "https:" && u.hostname === "portal.fbise.edu.pk";
+    return (
+      u.protocol === "https:" &&
+      (u.hostname === "portal.fbise.edu.pk" || u.hostname === "result.fbise.edu.pk")
+    );
   } catch {
     return false;
   }

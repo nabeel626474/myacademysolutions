@@ -1,4 +1,4 @@
-import { RESULT_BASE } from "./fbise-shared";
+import { GAZETTE_BASE, GAZETTE_FOLDERS, RESULT_BASE } from "./fbise-shared";
 
 export type CardResult =
   | {
@@ -48,10 +48,61 @@ function proxied(url: string): string {
   return `/api/public/fbise/asset?u=${encodeURIComponent(abs)}`;
 }
 
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36";
+
+/** Fetches a result from the new static gazette host (result.fbise.edu.pk). */
+async function fetchGazette(cls: string, rollNo: string): Promise<CardResult | null> {
+  const folder = GAZETTE_FOLDERS[cls];
+  if (!folder) return null;
+  const url = `${GAZETTE_BASE}${folder}/${encodeURIComponent(rollNo)}.html`;
+  let raw: string;
+  try {
+    const res = await fetch(url, {
+      redirect: "manual",
+      headers: { "User-Agent": UA, Referer: GAZETTE_BASE },
+    });
+    if (res.status !== 200) return { ok: false, rollNo, error: "Record not found on FBISE portal" };
+    raw = await res.text();
+  } catch (e) {
+    return { ok: false, rollNo, error: `Network error: ${(e as Error).message}` };
+  }
+
+  if (!/Roll\s*No/i.test(raw) || !/<table/i.test(raw)) {
+    return { ok: false, rollNo, error: "Record not found on FBISE portal" };
+  }
+
+  const html = raw
+    .replace(/^\uFEFF/, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<\/?(html|head|body)[^>]*>/gi, "")
+    .replace(/<title>[\s\S]*?<\/title>/gi, "")
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, "");
+
+  const plain = textOf(html);
+  const studentName = pickField(plain, /Candidate'?s?\s*Name\s*:?\s*([^:]{2,80}?)\s*Father/i);
+  const fatherName = pickField(plain, /Father'?s?\s*Name\s*:?\s*([^:]{2,80}?)\s*Institute/i);
+
+  return {
+    ok: true,
+    rollNo,
+    title: `RESULT CARD - ${rollNo}`,
+    html,
+    qrValues: [rollNo],
+    ...(studentName ? { studentName } : {}),
+    ...(fatherName ? { fatherName } : {}),
+  };
+}
+
 export async function fetchResultCard(cls: string, rollNo: string): Promise<CardResult> {
+  const gazette = await fetchGazette(cls, rollNo);
+  if (gazette) return gazette;
+
   const url = `${RESULT_BASE}result.php?class=${encodeURIComponent(cls)}&rollNo=${encodeURIComponent(
     rollNo,
   )}&name=&reg_no=`;
+
 
   let raw: string;
   try {
@@ -69,7 +120,12 @@ export async function fetchResultCard(cls: string, rollNo: string): Promise<Card
     return { ok: false, rollNo, error: `Network error: ${(e as Error).message}` };
   }
 
-  if (/status=failed/i.test(raw) || /no\s+record/i.test(raw)) {
+  if (
+    /status=failed/i.test(raw) ||
+    /no\s+record/i.test(raw) ||
+    /Enter\s*Roll\s*No/i.test(raw) ||
+    /Result\s*Announcement/i.test(raw)
+  ) {
     return { ok: false, rollNo, error: "Record not found on FBISE portal" };
   }
 
