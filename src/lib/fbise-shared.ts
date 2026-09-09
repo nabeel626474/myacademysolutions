@@ -34,7 +34,10 @@ export const CLASS_VALUES = CLASS_OPTIONS.map((c) => c.value) as readonly string
 export function isAllowedAsset(url: string) {
   try {
     const u = new URL(url);
-    return u.protocol === "https:" && u.hostname === "portal.fbise.edu.pk";
+    return (
+      u.protocol === "https:" &&
+      (u.hostname === "portal.fbise.edu.pk" || u.hostname === "result.fbise.edu.pk")
+    );
   } catch {
     return false;
   }
