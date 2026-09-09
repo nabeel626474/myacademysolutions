@@ -17,9 +17,37 @@ import logoUrl from "@/assets/academy-logo.png";
  * download or preview, so they are loaded on demand instead of shipping with the
  * initial page bundle.
  */
-const loadPdf = () => import("@/lib/result-pdf");
-const loadExcel = () => import("@/lib/result-excel");
-const loadZip = () => import("jszip");
+/**
+ * After a new version is deployed the old chunk file names disappear, so a
+ * cached page can fail with "Failed to fetch dynamically imported module".
+ * Retry once, then reload the page so the browser picks up the new build.
+ */
+async function loadChunk<T>(load: () => Promise<T>): Promise<T> {
+  try {
+    return await load();
+  } catch {
+    try {
+      return await load();
+    } catch (err) {
+      if (typeof window !== "undefined") {
+        const key = "mas-chunk-reload";
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          window.location.reload();
+          await new Promise(() => {});
+        }
+      }
+      throw new Error(
+        "Could not load the Excel builder. Please refresh the page and try again.",
+      );
+    }
+  }
+}
+
+const loadPdf = () => loadChunk(() => import("@/lib/result-pdf"));
+const loadExcel = () => loadChunk(() => import("@/lib/result-excel"));
+const loadZip = () => loadChunk(() => import("jszip"));
+
 
 
 
