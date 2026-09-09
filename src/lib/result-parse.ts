@@ -71,7 +71,7 @@ export function parseResultHtml(rollNo: string, html: string): ParsedResult {
   // New gazette page: "Result PASS WITH 456 MARKS"
   const obtainedText =
     field(text, /Marks\s*Obt\s*:?\s*([^:]{0,60})/i) ||
-    field(text, /\bResult\b\s*:?\s*((?:PASS|FAIL)[^:]{0,60})/i);
+    field(text, /\bResult\s*:?\s*((?:PASS|FAIL)[^:]{0,60})/i);
   const obtained = num(obtainedText);
   const status = /fail/i.test(obtainedText) ? "Fail" : /pass/i.test(obtainedText) ? "Pass" : "";
   const grade = field(text, /placed\s+in\s+([A-Z+]{1,3})\b/i);
