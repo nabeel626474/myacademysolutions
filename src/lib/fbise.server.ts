@@ -120,7 +120,12 @@ export async function fetchResultCard(cls: string, rollNo: string): Promise<Card
     return { ok: false, rollNo, error: `Network error: ${(e as Error).message}` };
   }
 
-  if (/status=failed/i.test(raw) || /no\s+record/i.test(raw)) {
+  if (
+    /status=failed/i.test(raw) ||
+    /no\s+record/i.test(raw) ||
+    /Enter\s*Roll\s*No/i.test(raw) ||
+    /Result\s*Announcement/i.test(raw)
+  ) {
     return { ok: false, rollNo, error: "Record not found on FBISE portal" };
   }
 
