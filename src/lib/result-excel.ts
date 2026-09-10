@@ -157,9 +157,24 @@ export async function buildResultWorkbook(
   const students: ParsedResult[] = sources.map((s) => parseResultHtml(s.rollNo, s.html));
   if (students.length === 0) throw new Error("Please fetch results for some roll numbers first.");
 
-  // Subject order = first appearance across students; max = highest mark seen.
+  // A Part-II card lists both the Part-I (previous year) and Part-II papers of
+  // the same subject, e.g. "ENGLISH - I (COMP.)" and "ENGLISH - II (COMP.)".
+  // Both collapse to one short name, so their marks are added together.
+  const marksOf = (st: ParsedResult, key: string): number | null => {
+    let sum = 0;
+    let seen = false;
+    for (const s of st.subjects) {
+      if (shortSubject(s.subject) !== key) continue;
+      if (s.marks === null && s.practical === null) continue;
+      seen = true;
+      sum += (s.marks ?? 0) + (s.practical ?? 0);
+    }
+    return seen ? sum : null;
+  };
+
+  // Subject order = first appearance across students; max = highest combined
+  // mark seen for that subject across the batch.
   const order: string[] = [];
-  const highest = new Map<string, number>();
   const fullName = new Map<string, string>();
   for (const st of students) {
     for (const sub of st.subjects) {
@@ -168,18 +183,16 @@ export async function buildResultWorkbook(
         order.push(key);
         fullName.set(key, sub.subject);
       }
-      const total = (sub.marks ?? 0) + (sub.practical ?? 0);
-      highest.set(key, Math.max(highest.get(key) ?? 0, total));
+    }
+  }
+  const highest = new Map<string, number>();
+  for (const st of students) {
+    for (const key of order) {
+      const v = marksOf(st, key);
+      if (v !== null) highest.set(key, Math.max(highest.get(key) ?? 0, v));
     }
   }
   const maxOf = new Map(order.map((k) => [k, guessMax(highest.get(k) ?? 0, k)]));
-
-  const marksOf = (st: ParsedResult, key: string): number | null => {
-    const hit = st.subjects.find((s) => shortSubject(s.subject) === key);
-    if (!hit) return null;
-    if (hit.marks === null && hit.practical === null) return null;
-    return (hit.marks ?? 0) + (hit.practical ?? 0);
-  };
 
   const wb = new ExcelJS.Workbook();
   wb.creator = "FBISE Result Tool";
