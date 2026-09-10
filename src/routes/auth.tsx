@@ -7,6 +7,7 @@ import { checkAdminExists } from "@/lib/public.functions";
 import { enforceSessionAge, markSignIn } from "@/lib/session";
 import { unlockWithPin } from "@/lib/pin.functions";
 import { markWelcomeToShow } from "@/components/welcome-modal";
+import { PinKeypad } from "@/components/pin-keypad";
 
 import logoUrl from "@/assets/academy-logo.png";
 
@@ -202,6 +203,19 @@ function AuthPage() {
                 {pinBusy ? "Checking…" : "Unlock"}
               </button>
             </form>
+
+            <PinKeypad
+              value={pin}
+              onChange={setPin}
+              onSubmit={() => {
+                if (pin.length >= 4 && !pinBusy) {
+                  const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                  onPinSubmit(fakeEvent);
+                }
+              }}
+              disabled={pinBusy}
+              maxLength={8}
+            />
 
             <button
               className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
