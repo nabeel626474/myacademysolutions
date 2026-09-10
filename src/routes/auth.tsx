@@ -7,6 +7,7 @@ import { checkAdminExists } from "@/lib/public.functions";
 import { enforceSessionAge, markSignIn } from "@/lib/session";
 import { unlockWithPin } from "@/lib/pin.functions";
 import { markWelcomeToShow } from "@/components/welcome-modal";
+import { PinKeypad } from "@/components/pin-keypad";
 
 import logoUrl from "@/assets/academy-logo.png";
 
