@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Delete, CornerDownLeft } from "lucide-react";
 
 interface PinKeypadProps {
@@ -15,6 +16,8 @@ export function PinKeypad({
   disabled,
   maxLength = 8,
 }: PinKeypadProps) {
+  const [pressed, setPressed] = useState<string | null>(null);
+
   function append(digit: string) {
     if (disabled) return;
     const next = (value + digit).replace(/\D/g, "").slice(0, maxLength);
@@ -30,6 +33,36 @@ export function PinKeypad({
     if (disabled) return;
     onChange("");
   }
+
+  // Mirror physical keyboard presses onto the on-screen keypad.
+  useEffect(() => {
+    function keyToId(key: string): string | null {
+      if (/^[0-9]$/.test(key)) return key;
+      if (key === "Backspace") return "backspace";
+      if (key === "Delete") return "clear";
+      if (key === "Enter") return "submit";
+      return null;
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      const id = keyToId(e.key);
+      if (!id) return;
+      setPressed(id);
+    }
+    function onKeyUp() {
+      setPressed(null);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onKeyUp);
+    };
+  }, []);
+
+  const keyClass = (id: string, base: string) =>
+    pressed === id ? `${base} pin-key-pressed` : base;
 
   const keys = [
     ["1", "2", "3"],
@@ -48,7 +81,7 @@ export function PinKeypad({
                 <button
                   key={key}
                   type="button"
-                  className="pin-key pin-key-secondary"
+                  className={keyClass("clear", "pin-key pin-key-secondary")}
                   onClick={clear}
                   disabled={disabled || value.length === 0}
                   aria-label="Clear PIN"
@@ -63,7 +96,7 @@ export function PinKeypad({
                 <button
                   key={key}
                   type="button"
-                  className="pin-key pin-key-secondary"
+                  className={keyClass("backspace", "pin-key pin-key-secondary")}
                   onClick={backspace}
                   disabled={disabled || value.length === 0}
                   aria-label="Backspace"
@@ -77,7 +110,7 @@ export function PinKeypad({
               <button
                 key={key}
                 type="button"
-                className="pin-key"
+                className={keyClass(key, "pin-key")}
                 onClick={() => append(key)}
                 disabled={disabled || value.length >= maxLength}
                 aria-label={`${key}`}
@@ -90,7 +123,7 @@ export function PinKeypad({
       ))}
       <button
         type="button"
-        className="pin-key pin-key-submit mt-2"
+        className={keyClass("submit", "pin-key pin-key-submit mt-2")}
         onClick={onSubmit}
         disabled={disabled || value.length < 4}
         aria-label="Unlock"
