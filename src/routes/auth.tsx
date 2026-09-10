@@ -204,6 +204,19 @@ function AuthPage() {
               </button>
             </form>
 
+            <PinKeypad
+              value={pin}
+              onChange={setPin}
+              onSubmit={() => {
+                if (pin.length >= 4 && !pinBusy) {
+                  const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                  onPinSubmit(fakeEvent);
+                }
+              }}
+              disabled={pinBusy}
+              maxLength={8}
+            />
+
             <button
               className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 transition hover:opacity-100"
               onClick={() => {
